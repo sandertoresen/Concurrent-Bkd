@@ -8,7 +8,7 @@ using namespace std;
 struct DataNode
 {
     float cordinates[DIMENSIONS];
-    char *location[CHARACTER_LIMIT];
+    char location[CHARACTER_LIMIT];
 };
 
 // struct KDB_Leaf
@@ -16,16 +16,10 @@ struct DataNode
 //     DataNode LeafArray[KDB_LEAF_SIZE];
 // };
 
-struct ThreadDataNodeBuffer
-{
-    DataNode buffer[THREAD_BUFFER_SIZE];
-    int size = 0;
-};
-
-struct GlobalMemoryDataNodeBuffer
-{
-    ThreadDataNodeBuffer threadDataNodeBuffers[GLOBAL_BUFFER_SIZE];
-    atomic<int> globalSize;
-};
+// struct GlobalMemoryDataNodeBuffer
+// {
+//     DataNode globalMemoryDataNodes[GLOBAL_BUFFER_SIZE];
+//     atomic<int> globalSize;
+// };
 
 #endif

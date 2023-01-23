@@ -11,12 +11,24 @@ public:
     BkdTree();
     ~BkdTree();
 
-    int insert(DataNode *value);
-    int remove(float index[DIMENSIONS]);
+    // int insert(DataNode *value);
+    int insert(DataNode *values);
+    // int remove(float index[DIMENSIONS]);
 
-private:
-    GlobalMemoryDataNodeBuffer *globalMemory;
-    GlobalMemoryDataNodeBuffer *globalDisk;
+    DataNode *globalMemory;
+    atomic<int> globalMemorySize;
+    bool globalChunkReady[GLOBAL_B_CHUNK_SIZE];
+
+    DataNode *globalDisk;
+    // private:
 };
+
+// have thread functions which just encapsulates BkdTree calls(?)
+
+// need function that spawns thread that inserts data into memory buffer and returning it to global
+// if global full, deal with global by pushing to disk/trees
+// arg == Bkdtree?
+
+void *_threadInserter(void *bkdTree);
 
 #endif
