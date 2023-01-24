@@ -14,6 +14,7 @@ BkdTree::BkdTree() // default constructor
 
     fill_n(globalChunkReady, GLOBAL_B_CHUNK_SIZE, false);
     globalDisk = NULL;
+    globalDiskSize = -1;
 }
 
 BkdTree::~BkdTree() // Destructor
@@ -53,12 +54,12 @@ void *_threadInserter(void *bkdTree)
         strcpy(threadData[i].location, "Input");
     }
 
-    int size;
+    int size, updatedSize;
 
     while (1)
     {
         size = tree->globalMemorySize.load();
-        int updatedSize = size + THREAD_BUFFER_SIZE;
+        updatedSize = size + THREAD_BUFFER_SIZE;
 
         if (size >= GLOBAL_BUFFER_SIZE)
             continue;
@@ -71,37 +72,36 @@ void *_threadInserter(void *bkdTree)
 
     printf("Size: %d Set value at chunk %d\n", size, size / THREAD_BUFFER_SIZE);
     tree->globalChunkReady[size / THREAD_BUFFER_SIZE] = true;
-    // printf("fetch %s\n", tree->globalMemory->threadDataNodeBuffers[size]->buffer->location);
-    /*
-//TODO: flag?
-GlobalMem[*,*,*] //pointers
-Finished inserting[-1,-1,-1]
-first size ++;
-then insert data
-update finished inserting
 
-finished inserting will be used by thread to assert data
-is safe to handle and other nodes are finished
+    // Tree now full -> handle data
+    if (updatedSize < GLOBAL_BUFFER_SIZE)
+    {
+        pthread_exit(NULL);
+    }
 
+    bool moreWork = true;
+    while (moreWork)
+    {
+        moreWork = false;
+        for (int i = 0; i < GLOBAL_B_CHUNK_SIZE; i++)
+        {
+            moreWork += !tree->globalChunkReady[i];
+        }
+    }
 
+    if (tree->globalDisk == NULL)
+    {
+        tree->globalDisk = tree->globalMemory;
+        tree->globalDiskSize.store(GLOBAL_BUFFER_SIZE);
 
-load size
-if(size != full)
-compare exchange(replace with size + 1)
-insert data
+        fill_n(tree->globalChunkReady, GLOBAL_B_CHUNK_SIZE, false);
 
+        tree->globalMemory = new DataNode[GLOBAL_BUFFER_SIZE];
+        tree->globalMemorySize.store(0);
+        printf("Used globalDisk\n");
+        pthread_exit(NULL);
+    }
 
-while(buf not full):
-    wait for Api input
-    buf[i] = stream[i++];
-
-//buf full
-while(GlobalMem full)
-    wait
-
-try inserting data
-
-if Globalmem now full, handle restructure
-*/
+    printf("Obs.. not implemented yet, bulkloading\n");
     pthread_exit(NULL);
 }

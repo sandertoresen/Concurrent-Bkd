@@ -17,9 +17,11 @@ public:
 
     DataNode *globalMemory;
     atomic<int> globalMemorySize;
-    bool globalChunkReady[GLOBAL_B_CHUNK_SIZE];
 
     DataNode *globalDisk;
+    atomic<int> globalDiskSize;
+    bool globalChunkReady[GLOBAL_B_CHUNK_SIZE];
+
     // private:
 };
 
