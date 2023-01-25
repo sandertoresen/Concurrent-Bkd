@@ -3,7 +3,7 @@
 #include "includes/BkdTree.h"
 #include <atomic>
 
-#define NUM_THREADS 7
+#define NUM_THREADS 8
 
 int main()
 {
@@ -29,14 +29,14 @@ int main()
         pthread_join(threads[i], NULL);
     }
 
-    printf("Tree size %d\n", tree->globalMemorySize.load());
-    // for (int i = 0; i < tree->globalMemorySize.load(); i++)
-    // {
-    //     printf("|%d|(%f,%f):%s\n", i,
-    //            tree->globalMemory[i].cordinates[0],
-    //            tree->globalMemory[i].cordinates[1],
-    //            tree->globalMemory[i].location);
-    // }
+    /*printf("Tree size %d\n", tree->globalDiskSize.load());
+    for (int i = 0; i < tree->globalDiskSize.load(); i++)
+    {
+        printf("|%d|(%f,%f):%s\n", i,
+               tree->globalDisk[i].cordinates[0],
+               tree->globalDisk[i].cordinates[1],
+               tree->globalDisk[i].location);
+    }*/
 
     pthread_exit(NULL);
 }

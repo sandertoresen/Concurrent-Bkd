@@ -105,3 +105,106 @@ void *_threadInserter(void *bkdTree)
     printf("Obs.. not implemented yet, bulkloading\n");
     pthread_exit(NULL);
 }
+
+// pointers to take in Memory array, Disk array
+void BkdTree::_bulkloadTree()
+{
+    /*// step 1, find first aveilable tree
+
+    // count how many trees and nodes need inserting
+    int num_nodes = MemArray->size + DiskArray->size;
+    int trees_size = 0;
+
+    // will add tree last if not changed
+    bool add_last = true;
+    std::list<KDB_Tree *>::iterator it;
+
+    if (trees.size())
+    {
+        for (std::list<KDB_Tree *>::iterator itr = trees.begin(); itr != trees.end(); ++itr)
+        {
+            KDB_Tree *ptr = *itr;
+            if (ptr == NULL)
+            {
+                add_last = false;
+                it = itr; // store pointer tree will be inserted
+                break;
+            }
+            // TODO update tree size when deleting
+            trees_size += ptr->size;
+        }
+    }
+
+    num_nodes += trees_size;
+
+    // allocate temporary file F, (store data DIMENSIONS times to be able to sort it on every dimention)
+
+    DataNode *values = new DataNode[num_nodes * DIMENSIONS]; // allocate space for nodes per dim
+    int offset = 0;
+    for (std::list<KDB_Tree *>::iterator itr = trees.begin(); itr != trees.end(); ++itr)
+    { // copy all values from trees
+        // break if we reach replacement node
+        if (!add_last && itr == it)
+            break;
+
+        KDB_Tree *ptr = *itr;
+        // insert data on first dimention |Mem|Disk|*Tree*
+        KDB_Tree_fetch_all_nodes(ptr, &values[MemArray->size + DiskArray->size + offset]);
+        offset += ptr->size;
+    }
+
+    // copy Mem and disk array
+    memcpy(&values[0], MemArray->array, sizeof(DataNode) * MemArray->size);
+    memcpy(&values[MemArray->size], DiskArray->array, sizeof(DataNode) * DiskArray->size);
+
+    // memcpy mem and disk arrays
+    for (int d = 0; d < DIMENSIONS; d++)
+    {
+        if (d) // paste over tree data
+            memcpy(&values[d * num_nodes], &values[0], sizeof(DataNode) * num_nodes);
+
+        std::sort(&values[d * num_nodes], &values[d * num_nodes + num_nodes], dataNodeCMP(d));
+    }
+
+    KDB_Tree *tree = Skratch_KDB_Create_Tree(values, num_nodes);
+
+    // add tree at correct position
+    if (add_last)
+    {
+        for (std::list<KDB_Tree *>::iterator itr = trees.begin(); itr != trees.end(); ++itr)
+        {
+            KDB_Tree *ptr = *itr;
+            // KDB_Tree_destroy(ptr);
+            itr = trees.erase(itr);
+            itr = trees.insert(itr, NULL);
+        }
+
+        trees.push_back(tree);
+    }
+    else
+    {
+        // remove all nodes before it and replace it
+        it = trees.erase(it);
+        it = trees.insert(it, tree);
+
+        // delete all nodes before
+        for (std::list<KDB_Tree *>::iterator itr = trees.begin(); itr != it; ++itr)
+        {
+            KDB_Tree *ptr = *itr;
+            // KDB_Tree_destroy(ptr);
+            itr = trees.erase(itr);
+            itr = trees.insert(itr, NULL);
+        }
+    }
+
+    // remove old nodes
+    delete[] values;
+    delete MemArray;
+    delete DiskArray;
+
+    MemArray = new DataArray;
+    MemArray->size = 0;
+
+    DiskArray = NULL;
+    DiskArrayFull = false;*/
+}

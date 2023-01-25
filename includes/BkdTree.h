@@ -22,7 +22,12 @@ public:
     atomic<int> globalDiskSize;
     bool globalChunkReady[GLOBAL_B_CHUNK_SIZE];
 
-    // private:
+    void _bulkloadTree();
+
+    // list<KDB_Tree> firstTreeStorage // same growth sequence as prepatory project
+
+    // list<KDB_Tree> trees of a sertain size
+    // num trees of sertain size
 };
 
 // have thread functions which just encapsulates BkdTree calls(?)
