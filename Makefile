@@ -1,11 +1,11 @@
-# KDB_TREE_SRC=includes/KDB_Tree.cpp
+KDB_TREE_SRC=includes/KdbTree.cpp
 MEMORY_STRUCTURES_SRC= includes/MemoryStructures.cpp
 BKD_TREE_SRC= includes/BkdTree.cpp
 MAIN_SRC= main.cpp
 
-PROGRAM_SRC=$(MAIN_SRC) $(MEMORY_STRUCTURES_SRC) $(BKD_TREE_SRC) #$(KDB_TREE_SRC)
+PROGRAM_SRC=$(MAIN_SRC) $(MEMORY_STRUCTURES_SRC) $(BKD_TREE_SRC) $(KDB_TREE_SRC)
 
-HEADERS=includes/Config.h includes/MemoryStructures.h includes/BkdTree.h
+HEADERS=includes/Config.h includes/MemoryStructures.h includes/BkdTree.h includes/KdbTree.h
 
 
 

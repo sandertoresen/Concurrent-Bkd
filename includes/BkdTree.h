@@ -4,6 +4,7 @@
 #include <cstdarg>
 #include "Config.h"
 #include "MemoryStructures.h"
+#include "KdbTree.h"
 
 class BkdTree
 {
@@ -21,6 +22,9 @@ public:
     DataNode *globalDisk;
     atomic<int> globalDiskSize;
     bool globalChunkReady[GLOBAL_B_CHUNK_SIZE];
+
+    list<KdbTree *> globalWriteTree;
+    // list<KdbTree> *globalReadTree; //list pointer for readers (RCU)
 
     void _bulkloadTree();
 

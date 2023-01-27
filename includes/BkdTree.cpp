@@ -5,6 +5,22 @@
 #include <cmath>
 #include "Config.h"
 #include "BkdTree.h"
+#include "KdbTree.h"
+
+class dataNodeCMP
+{
+    int dimension;
+
+public:
+    dataNodeCMP(int dim) : dimension(dim) {}
+
+    // This operator overloading enables calling
+    // operator function () on objects of increment
+    bool operator()(DataNode &a, DataNode &b)
+    {
+        return (bool)(a.cordinates[dimension] < b.cordinates[dimension]);
+    }
+};
 
 BkdTree::BkdTree() // default constructor
 {
@@ -44,7 +60,6 @@ struct input {
 void *_threadInserter(void *bkdTree)
 {
     BkdTree *tree = (BkdTree *)bkdTree;
-
     DataNode threadData[THREAD_BUFFER_SIZE];
 
     for (int i = 0; i < THREAD_BUFFER_SIZE; i++)
@@ -103,108 +118,115 @@ void *_threadInserter(void *bkdTree)
     }
 
     printf("Obs.. not implemented yet, bulkloading\n");
+    tree->_bulkloadTree();
     pthread_exit(NULL);
 }
 
 // pointers to take in Memory array, Disk array
 void BkdTree::_bulkloadTree()
 {
-    /*// step 1, find first aveilable tree
+    // Step 1: copy over Datanodes and reset global Memory and disk to get other threads working again!
+    // update safe reader pointer so data can still be accessed.
+    // OBS assert data is safe to edit
 
-    // count how many trees and nodes need inserting
-    int num_nodes = MemArray->size + DiskArray->size;
-    int trees_size = 0;
+    // atomic variables(?)
+    int localMemoryBufferSize = globalMemorySize.load();
+    int localDiskBufferSize = globalDiskSize;
+    int numNodes = localMemoryBufferSize + localDiskBufferSize;
+    int treeSize = 0;
 
     // will add tree last if not changed
-    bool add_last = true;
-    std::list<KDB_Tree *>::iterator it;
+    bool addLast = true;
+    std::list<KdbTree *>::iterator newTreelocation;
 
-    if (trees.size())
+    if (globalWriteTree.size())
     {
-        for (std::list<KDB_Tree *>::iterator itr = trees.begin(); itr != trees.end(); ++itr)
+        for (std::list<KdbTree *>::iterator itr = globalWriteTree.begin(); itr != globalWriteTree.end(); ++itr)
         {
-            KDB_Tree *ptr = *itr;
+            KdbTree *ptr = *itr;
             if (ptr == NULL)
             {
-                add_last = false;
-                it = itr; // store pointer tree will be inserted
+                addLast = false;
+                newTreelocation = itr;
                 break;
             }
             // TODO update tree size when deleting
-            trees_size += ptr->size;
+            treeSize += ptr->size;
         }
     }
 
-    num_nodes += trees_size;
+    numNodes += treeSize;
 
-    // allocate temporary file F, (store data DIMENSIONS times to be able to sort it on every dimention)
-
-    DataNode *values = new DataNode[num_nodes * DIMENSIONS]; // allocate space for nodes per dim
+    // allocate temporary file F
+    printf("h\n\n\n");
+    DataNode *values = new DataNode[numNodes * DIMENSIONS];
     int offset = 0;
-    for (std::list<KDB_Tree *>::iterator itr = trees.begin(); itr != trees.end(); ++itr)
-    { // copy all values from trees
+    for (std::list<KdbTree *>::iterator itr = globalWriteTree.begin(); itr != globalWriteTree.end(); ++itr)
+    { // copy all values from globalWriteTree
         // break if we reach replacement node
-        if (!add_last && itr == it)
+        if (!addLast && itr == newTreelocation)
             break;
 
-        KDB_Tree *ptr = *itr;
+        KdbTree *ptr = *itr;
         // insert data on first dimention |Mem|Disk|*Tree*
-        KDB_Tree_fetch_all_nodes(ptr, &values[MemArray->size + DiskArray->size + offset]);
+        KdbTreeFetchNodes(ptr, &values[localMemoryBufferSize + localDiskBufferSize + offset]);
         offset += ptr->size;
     }
 
     // copy Mem and disk array
-    memcpy(&values[0], MemArray->array, sizeof(DataNode) * MemArray->size);
-    memcpy(&values[MemArray->size], DiskArray->array, sizeof(DataNode) * DiskArray->size);
+    memcpy(&values[0], globalMemory, sizeof(DataNode) * localMemoryBufferSize);
+    memcpy(&values[localMemoryBufferSize], globalDisk, sizeof(DataNode) * localDiskBufferSize);
 
     // memcpy mem and disk arrays
     for (int d = 0; d < DIMENSIONS; d++)
     {
         if (d) // paste over tree data
-            memcpy(&values[d * num_nodes], &values[0], sizeof(DataNode) * num_nodes);
+            memcpy(&values[d * numNodes], &values[0], sizeof(DataNode) * numNodes);
 
-        std::sort(&values[d * num_nodes], &values[d * num_nodes + num_nodes], dataNodeCMP(d));
+        std::sort(&values[d * numNodes], &values[d * numNodes + numNodes], dataNodeCMP(d));
     }
 
-    KDB_Tree *tree = Skratch_KDB_Create_Tree(values, num_nodes);
+    KdbTree *tree = KdbCreateTree(values, numNodes);
+    printf("h\n\n\n");
 
     // add tree at correct position
-    if (add_last)
+    if (addLast)
     {
-        for (std::list<KDB_Tree *>::iterator itr = trees.begin(); itr != trees.end(); ++itr)
+        for (std::list<KdbTree *>::iterator itr = globalWriteTree.begin(); itr != globalWriteTree.end(); ++itr)
         {
-            KDB_Tree *ptr = *itr;
-            // KDB_Tree_destroy(ptr);
-            itr = trees.erase(itr);
-            itr = trees.insert(itr, NULL);
+            KdbTree *ptr = *itr;
+            // KdbTree_destroy(ptr);
+            itr = globalWriteTree.erase(itr);
+            itr = globalWriteTree.insert(itr, NULL);
         }
 
-        trees.push_back(tree);
+        globalWriteTree.push_back(tree);
     }
     else
     {
         // remove all nodes before it and replace it
-        it = trees.erase(it);
-        it = trees.insert(it, tree);
+        newTreelocation = globalWriteTree.erase(newTreelocation);
+        newTreelocation = globalWriteTree.insert(newTreelocation, tree);
 
         // delete all nodes before
-        for (std::list<KDB_Tree *>::iterator itr = trees.begin(); itr != it; ++itr)
+        for (std::list<KdbTree *>::iterator itr = globalWriteTree.begin(); itr != newTreelocation; ++itr)
         {
-            KDB_Tree *ptr = *itr;
-            // KDB_Tree_destroy(ptr);
-            itr = trees.erase(itr);
-            itr = trees.insert(itr, NULL);
+            KdbTree *ptr = *itr;
+            // KdbTree_destroy(ptr);
+            itr = globalWriteTree.erase(itr);
+            itr = globalWriteTree.insert(itr, NULL);
         }
     }
 
     // remove old nodes
-    delete[] values;
-    delete MemArray;
-    delete DiskArray;
+    // delete[] values;
+    // delete MemArray;
+    // delete DiskArray;
 
-    MemArray = new DataArray;
-    MemArray->size = 0;
+    // MemArray = new DataArray;
+    localMemoryBufferSize = 0;
 
-    DiskArray = NULL;
-    DiskArrayFull = false;*/
+    // DiskArray = NULL;
+    // DiskArrayFull = false;
+    __printKdbTree(tree);
 }
