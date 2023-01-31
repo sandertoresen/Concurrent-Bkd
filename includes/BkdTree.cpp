@@ -38,12 +38,12 @@ BkdTree::~BkdTree() // Destructor
     printf("Destructor runs!\n");
     if (globalMemory != NULL)
     {
-        delete globalMemory;
+        delete[] globalMemory;
     }
 
     if (globalDisk != NULL)
     {
-        delete globalDisk;
+        delete[] globalDisk;
     }
 }
 
@@ -64,8 +64,8 @@ void *_threadInserter(void *bkdTree)
 
     for (int i = 0; i < THREAD_BUFFER_SIZE; i++)
     {
-        threadData[i].cordinates[0] = 20.5f;
-        threadData[i].cordinates[1] = 63.5f;
+        threadData[i].cordinates[0] = (float)i;
+        threadData[i].cordinates[1] = (float)i;
         strcpy(threadData[i].location, "Input");
     }
 
@@ -91,7 +91,8 @@ void *_threadInserter(void *bkdTree)
     // Tree now full -> handle data
     if (updatedSize < GLOBAL_BUFFER_SIZE)
     {
-        pthread_exit(NULL);
+        return NULL;
+        // pthread_exit(NULL);
     }
 
     bool moreWork = true;
@@ -114,12 +115,14 @@ void *_threadInserter(void *bkdTree)
         tree->globalMemory = new DataNode[GLOBAL_BUFFER_SIZE];
         tree->globalMemorySize.store(0);
         printf("Used globalDisk\n");
-        pthread_exit(NULL);
+        return NULL;
+        // pthread_exit(NULL);
     }
 
-    printf("Obs.. not implemented yet, bulkloading\n");
+    printf("Start bulkload\n");
     tree->_bulkloadTree();
-    pthread_exit(NULL);
+    return NULL;
+    // pthread_exit(NULL);
 }
 
 // pointers to take in Memory array, Disk array
@@ -131,7 +134,7 @@ void BkdTree::_bulkloadTree()
 
     // atomic variables(?)
     int localMemoryBufferSize = globalMemorySize.load();
-    int localDiskBufferSize = globalDiskSize;
+    int localDiskBufferSize = globalDiskSize.load();
     int numNodes = localMemoryBufferSize + localDiskBufferSize;
     int treeSize = 0;
 
@@ -158,11 +161,12 @@ void BkdTree::_bulkloadTree()
     numNodes += treeSize;
 
     // allocate temporary file F
-    printf("h\n\n\n");
     DataNode *values = new DataNode[numNodes * DIMENSIONS];
+
     int offset = 0;
     for (std::list<KdbTree *>::iterator itr = globalWriteTree.begin(); itr != globalWriteTree.end(); ++itr)
     { // copy all values from globalWriteTree
+        printf("|x| In for loop\n...\n");
         // break if we reach replacement node
         if (!addLast && itr == newTreelocation)
             break;
@@ -185,9 +189,16 @@ void BkdTree::_bulkloadTree()
 
         std::sort(&values[d * numNodes], &values[d * numNodes + numNodes], dataNodeCMP(d));
     }
+    /*for (int i = 0; i < numNodes; i++)
+    {
+        printf("|%d|(%f,%f):%s\n", i,
+               values[i].cordinates[0],
+               values[i].cordinates[1],
+               values[i].location);
+    }*/
 
+    printf("|x| Create KdbTree\n");
     KdbTree *tree = KdbCreateTree(values, numNodes);
-    printf("h\n\n\n");
 
     // add tree at correct position
     if (addLast)
@@ -228,5 +239,5 @@ void BkdTree::_bulkloadTree()
 
     // DiskArray = NULL;
     // DiskArrayFull = false;
-    __printKdbTree(tree);
+    // __printKdbTree(tree);
 }

@@ -1,17 +1,17 @@
 #include <iostream>
 #include "includes/Config.h"
 #include "includes/BkdTree.h"
+#include "includes/KdbTree.h"
 #include <atomic>
+#include <string.h>
 
-#define NUM_THREADS 8
+#define NUM_THREADS 7
+// #define NUM_NODES 1024
 
 int main()
 {
     BkdTree *tree = new BkdTree;
-
-    // // destructors is automatically called when delete is called
-    // delete tree;
-
+    /*
     pthread_t threads[NUM_THREADS];
     int rc;
     int i;
@@ -27,18 +27,25 @@ int main()
             exit(-1);
         }
         pthread_join(threads[i], NULL);
-    }
+    }*/
 
-    /*printf("Tree size %d\n", tree->globalDiskSize.load());
+    for (int i = 0; i < 8; i++)
+    {
+        _threadInserter(tree);
+    }
+    /*
+    printf("Tree size %d\n", tree->globalDiskSize.load());
     for (int i = 0; i < tree->globalDiskSize.load(); i++)
     {
         printf("|%d|(%f,%f):%s\n", i,
                tree->globalDisk[i].cordinates[0],
                tree->globalDisk[i].cordinates[1],
                tree->globalDisk[i].location);
-    }*/
+    }
+    */
 
-    pthread_exit(NULL);
+    delete tree;
+    // pthread_exit(NULL);
 }
 
 // TODO sjekk ut korrekt construksjon og destruksjon av klasser
