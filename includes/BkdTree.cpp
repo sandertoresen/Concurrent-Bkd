@@ -31,6 +31,8 @@ BkdTree::BkdTree() // default constructor
     fill_n(globalChunkReady, GLOBAL_B_CHUNK_SIZE, false);
     globalDisk = NULL;
     globalDiskSize = -1;
+
+    bulking.store(false);
 }
 
 BkdTree::~BkdTree() // Destructor
@@ -38,6 +40,7 @@ BkdTree::~BkdTree() // Destructor
     printf("Destructor runs!\n");
     if (globalMemory != NULL)
     {
+        printf("delete global!\n");
         delete[] globalMemory;
     }
 
@@ -91,8 +94,7 @@ void *_threadInserter(void *bkdTree)
     // Tree now full -> handle data
     if (updatedSize < GLOBAL_BUFFER_SIZE)
     {
-        return NULL;
-        // pthread_exit(NULL);
+        pthread_exit(NULL);
     }
 
     bool moreWork = true;
@@ -115,19 +117,28 @@ void *_threadInserter(void *bkdTree)
         tree->globalMemory = new DataNode[GLOBAL_BUFFER_SIZE];
         tree->globalMemorySize.store(0);
         printf("Used globalDisk\n");
-        return NULL;
-        // pthread_exit(NULL);
+
+        pthread_exit(NULL);
     }
 
     printf("Start bulkload\n");
+    // clear tree->globalMemory and globalDisk
+    // put old globalMemory and globalDisk into Read variable untill the data has been inserted (RCU)
+
+    if (tree->bulking.load() == true)
+    {
+        printf("Caught up to bulkloader!\n");
+        pthread_exit(NULL);
+    }
     tree->_bulkloadTree();
-    return NULL;
-    // pthread_exit(NULL);
+
+    pthread_exit(NULL);
 }
 
 // pointers to take in Memory array, Disk array
 void BkdTree::_bulkloadTree()
 {
+    bulking.store(true);
     // Step 1: copy over Datanodes and reset global Memory and disk to get other threads working again!
     // update safe reader pointer so data can still be accessed.
     // OBS assert data is safe to edit
@@ -138,7 +149,7 @@ void BkdTree::_bulkloadTree()
     int numNodes = localMemoryBufferSize + localDiskBufferSize;
     int treeSize = 0;
 
-    // will add tree last if not changed
+    // will add tree last if not changed //RCU version, create new list(?)
     bool addLast = true;
     std::list<KdbTree *>::iterator newTreelocation;
 
@@ -153,20 +164,32 @@ void BkdTree::_bulkloadTree()
                 newTreelocation = itr;
                 break;
             }
-            // TODO update tree size when deleting
             treeSize += ptr->size;
         }
     }
 
     numNodes += treeSize;
-
-    // allocate temporary file F
+    printf("numnodes bulk: %d\n", numNodes);
     DataNode *values = new DataNode[numNodes * DIMENSIONS];
+
+    // copy Mem and disk array
+    memcpy(&values[0], globalMemory, sizeof(DataNode) * localMemoryBufferSize);
+    memcpy(&values[localMemoryBufferSize], globalDisk, sizeof(DataNode) * localDiskBufferSize);
+
+    // RCU make safe
+    delete[] globalMemory;
+    delete[] globalDisk;
+    globalDisk = NULL;
+
+    globalMemory = new DataNode[GLOBAL_BUFFER_SIZE];
+    fill_n(globalChunkReady, GLOBAL_B_CHUNK_SIZE, false);
+    globalDiskSize.store(0);
+    globalMemorySize.store(0);
 
     int offset = 0;
     for (std::list<KdbTree *>::iterator itr = globalWriteTree.begin(); itr != globalWriteTree.end(); ++itr)
     { // copy all values from globalWriteTree
-        printf("|x| In for loop\n...\n");
+
         // break if we reach replacement node
         if (!addLast && itr == newTreelocation)
             break;
@@ -176,10 +199,6 @@ void BkdTree::_bulkloadTree()
         KdbTreeFetchNodes(ptr, &values[localMemoryBufferSize + localDiskBufferSize + offset]);
         offset += ptr->size;
     }
-
-    // copy Mem and disk array
-    memcpy(&values[0], globalMemory, sizeof(DataNode) * localMemoryBufferSize);
-    memcpy(&values[localMemoryBufferSize], globalDisk, sizeof(DataNode) * localDiskBufferSize);
 
     // memcpy mem and disk arrays
     for (int d = 0; d < DIMENSIONS; d++)
@@ -197,7 +216,6 @@ void BkdTree::_bulkloadTree()
                values[i].location);
     }*/
 
-    printf("|x| Create KdbTree\n");
     KdbTree *tree = KdbCreateTree(values, numNodes);
 
     // add tree at correct position
@@ -236,7 +254,7 @@ void BkdTree::_bulkloadTree()
 
     // MemArray = new DataArray;
     localMemoryBufferSize = 0;
-
+    bulking.store(false);
     // DiskArray = NULL;
     // DiskArrayFull = false;
     // __printKdbTree(tree);

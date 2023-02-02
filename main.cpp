@@ -5,13 +5,13 @@
 #include <atomic>
 #include <string.h>
 
-#define NUM_THREADS 7
+#define NUM_THREADS 100
 // #define NUM_NODES 1024
 
 int main()
 {
     BkdTree *tree = new BkdTree;
-    /*
+
     pthread_t threads[NUM_THREADS];
     int rc;
     int i;
@@ -26,14 +26,14 @@ int main()
             cout << "Error:unable to create thread," << rc << endl;
             exit(-1);
         }
-        pthread_join(threads[i], NULL);
-    }*/
+        // pthread_join(threads[i], NULL);
+    }
 
-    for (int i = 0; i < 8; i++)
+    /*for (int i = 0; i < 8; i++)
     {
         _threadInserter(tree);
     }
-    /*
+
     printf("Tree size %d\n", tree->globalDiskSize.load());
     for (int i = 0; i < tree->globalDiskSize.load(); i++)
     {
@@ -44,7 +44,7 @@ int main()
     }
     */
 
-    delete tree;
+    // delete tree;
     // pthread_exit(NULL);
 }
 

@@ -23,7 +23,13 @@ public:
     atomic<int> globalDiskSize;
     bool globalChunkReady[GLOBAL_B_CHUNK_SIZE];
 
+    atomic<bool> bulking;
+
     list<KdbTree *> globalWriteTree;
+
+    // structures currently beeing processed can be temporarily accessed here
+    // list<void *> readSafeStructures;
+
     // list<KdbTree> *globalReadTree; //list pointer for readers (RCU)
 
     void _bulkloadTree();
