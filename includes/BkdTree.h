@@ -21,10 +21,16 @@ public:
 
     DataNode *globalDisk;
     atomic<int> globalDiskSize;
+
     bool globalChunkReady[GLOBAL_B_CHUNK_SIZE];
 
-    atomic<bool> bulking;
+    // must assert no other readers have started bulkloading in the meantime, might require lock
 
+    pthread_mutex_t bulkingLock;
+    atomic<int> treeBulkingStatus[MAX_BULKLOAD_LEVEL]; // 0 -> free, 1 -> stored tree, -1 -> currently bulkloading
+    KdbTree *globalWriteTreesArr[MAX_BULKLOAD_LEVEL];
+
+    // TODO: remove this variable
     list<KdbTree *> globalWriteTree;
 
     // structures currently beeing processed can be temporarily accessed here
