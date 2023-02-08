@@ -29,6 +29,7 @@ BkdTree::BkdTree() // default constructor
     globalMemorySize = 0;
 
     fill_n(globalChunkReady, GLOBAL_B_CHUNK_SIZE, false);
+    fill_n(treeBulkingStatus, MAX_BULKLOAD_LEVEL, 0);
     globalDisk = NULL;
     globalDiskSize = -1;
 
@@ -51,6 +52,18 @@ BkdTree::~BkdTree() // Destructor
     if (globalDisk != NULL)
     {
         delete[] globalDisk;
+    }
+    for (int i = 0; i < MAX_BULKLOAD_LEVEL; i++)
+    {
+        if (treeBulkingStatus[i] == -1)
+        {
+            printf("Error thread still working on tree after deconstruction!\n");
+            exit(-1);
+        }
+        if (treeBulkingStatus[i] == 1)
+        {
+            KdbDestroyTree(globalWriteTrees[i]);
+        }
     }
 }
 
@@ -137,8 +150,6 @@ void *_threadInserter(void *bkdTree)
 // pointers to take in Memory array, Disk array
 void BkdTree::_bulkloadTree()
 {
-    // numNodes = localMemorySize + localDiskSize;
-
     // Clear globalDisk and globalMem
     DataNode *localMemory = globalMemory;
     DataNode *localDisk = globalDisk;
@@ -168,19 +179,20 @@ void BkdTree::_bulkloadTree()
     int treeArrayLocation = -1;
 
     // while (treeArrayLocation == -1) //TODO: spin untill slot opens up
+    // if all are full, merge them all together to large tree
 
     for (int currentTree = 0; currentTree < MAX_BULKLOAD_LEVEL; currentTree++)
     {
-        if (treeBulkingStatus[currentTree] != 0)
+        if (treeBulkingStatus[currentTree].load() != 0)
             continue;
 
         for (int previousTree = 0; previousTree < currentTree; previousTree++)
         {
             if (treeBulkingStatus[previousTree] == 1)
             {
-                mergedTreeList.push_back(globalWriteTreesArr[previousTree]);
-                numNodes += globalWriteTreesArr[previousTree]->size;
-                globalWriteTreesArr[previousTree] = NULL;
+                mergedTreeList.push_back(globalWriteTrees[previousTree]);
+                numNodes += globalWriteTrees[previousTree]->size;
+                globalWriteTrees[previousTree] = NULL;
                 treeBulkingStatus[previousTree] = 0;
             }
             else
@@ -195,7 +207,7 @@ void BkdTree::_bulkloadTree()
                 exit(0);
             }
         }
-
+        treeBulkingStatus[currentTree] = -1; // set to working on
         treeArrayLocation = currentTree;
         break;
     }
@@ -209,65 +221,6 @@ void BkdTree::_bulkloadTree()
     memcpy(&values[localMemorySize], localDisk, sizeof(DataNode) * localDiskSize);
     delete[] localMemory;
     delete[] localDisk;
-
-    // numNodes += writeList[previousTree].size
-    // writelist.remove(writeList[previousTree])
-    // treeIds.append(writeList[previousTree].id)
-    /*
-    Add data from deleted trees
-    perform bulkload
-    -> check if i should cancel
-    */
-
-    /*
-        Place new tree in tree write list
-        Place new tree in treeRead list
-        Remove old trees from treeRead list
-
-        assert i am not canceled(?)
-
-    */
-    // Step 1: copy over Datanodes and reset global Memory and disk to get other threads working again!
-    // update safe reader pointer so data can still be accessed.
-    // OBS assert data is safe to edit
-
-    /*
-    could be a locked area(?)
-    for i in bulking:
-        if(i == 0)
-            start bulkload
-        if(i == 1)
-            //stored tree
-            ready to bulkload this tree
-        if(i == -1)
-            //tree currently beeing created
-            cancel creation and add these nodes to the new tree
-
-    for loop scenarios:
-
-    1. arr[i] == 0 && i == 0 -> first node start bulkload on first value
-        -> cas(0, -1)
-        -> create tree
-        -> insert tree in read and write list
-        -> store(1)
-
-    2. arr[i] == 0 && i > 0 -> bulk load with bulking previous trees
-        -> cas(0, -1)
-        -> fetch previous structures (if previous structure is -1, send cancel signal to that thread and wait for data)
-        -> remove trees from write list (future: make sure readlist supports multiple trees of same size)
-        -> create tree
-        -> insert tree in read and write list
-        -> store(1)
-
-    3. arr[i] == 1 && i == N -> tree full, spin untill slot opens up
-
-    4. started creating tree and get canceled:
-        - transfer data to new thread
-        - update read and write list(?)
-            -> transfer read and write list data for new thread to cleanup
-        - store(0)
-
-    */
 
     int offset = localMemorySize + localDiskSize;
     for (std::list<KdbTree *>::iterator itr = mergedTreeList.begin(); itr != mergedTreeList.end(); ++itr)
@@ -293,11 +246,19 @@ void BkdTree::_bulkloadTree()
     }*/
 
     KdbTree *tree = KdbCreateTree(values, numNodes);
-    globalWriteTreesArr[treeArrayLocation] = tree;
+    globalWriteTrees[treeArrayLocation] = tree;
+    treeBulkingStatus[treeArrayLocation].store(1);
     // TODO update Read log and remove merged trees from it
 
     // remove old nodes
     delete[] values;
+    // delete list<KdbTree *> mergedTreeList;
+
+    for (std::list<KdbTree *>::iterator itr = mergedTreeList.begin(); itr != mergedTreeList.end(); ++itr)
+    {
+        KdbDestroyTree(*itr);
+        mergedTreeList.erase(itr++);
+    }
 
     // __printKdbTree(tree);
 }

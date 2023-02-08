@@ -5,7 +5,7 @@
 #include <atomic>
 #include <string.h>
 
-#define NUM_THREADS 100
+#define NUM_THREADS 8
 // #define NUM_NODES 1024
 
 int main()
@@ -26,7 +26,7 @@ int main()
             cout << "Error:unable to create thread," << rc << endl;
             exit(-1);
         }
-        // pthread_join(threads[i], NULL);
+        pthread_join(threads[i], NULL);
     }
 
     /*for (int i = 0; i < 8; i++)
@@ -43,9 +43,9 @@ int main()
                tree->globalDisk[i].location);
     }
     */
-
+    delete tree;
     // delete tree;
-    // pthread_exit(NULL);
+    pthread_exit(NULL);
 }
 
 // TODO sjekk ut korrekt construksjon og destruksjon av klasser

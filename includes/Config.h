@@ -10,7 +10,7 @@ static const int CHARACTER_LIMIT = 32;
 // it will also increase the communication between threads as there would be more writes to global memory per insert
 // however smaller buffers would cause readers to have more updated data.
 // should perform a test testing the effect of different thread buffer sizes.
-static const int THREAD_BUFFER_SIZE = 4096;
+static const int THREAD_BUFFER_SIZE = 128;
 static const int GLOBAL_B_CHUNK_SIZE = 4;
 static const int GLOBAL_BUFFER_SIZE = GLOBAL_B_CHUNK_SIZE * THREAD_BUFFER_SIZE;
 

@@ -28,10 +28,7 @@ public:
 
     pthread_mutex_t bulkingLock;
     atomic<int> treeBulkingStatus[MAX_BULKLOAD_LEVEL]; // 0 -> free, 1 -> stored tree, -1 -> currently bulkloading
-    KdbTree *globalWriteTreesArr[MAX_BULKLOAD_LEVEL];
-
-    // TODO: remove this variable
-    list<KdbTree *> globalWriteTree;
+    KdbTree *globalWriteTrees[MAX_BULKLOAD_LEVEL];
 
     // structures currently beeing processed can be temporarily accessed here
     // list<void *> readSafeStructures;
