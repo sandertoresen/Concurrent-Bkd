@@ -4,8 +4,6 @@
 #include "includes/KdbTree.h"
 #include <atomic>
 #include <string.h>
-
-#define NUM_THREADS 8
 // #define NUM_NODES 1024
 
 int main()

@@ -31,7 +31,7 @@ BkdTree::BkdTree() // default constructor
     fill_n(globalChunkReady, GLOBAL_B_CHUNK_SIZE, false);
     fill_n(treeBulkingStatus, MAX_BULKLOAD_LEVEL, 0);
     globalDisk = NULL;
-    globalDiskSize = -1;
+    globalDiskSize = 0;
 
     if (pthread_mutex_init(&bulkingLock, NULL) != 0)
     {
