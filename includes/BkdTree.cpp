@@ -25,6 +25,7 @@ public:
 BkdTree::BkdTree() // default constructor
 {
     printf("Constructur runs!\n");
+    API = new MockApi();
     globalMemory = new DataNode[GLOBAL_BUFFER_SIZE];
     globalMemorySize = 0;
 
@@ -84,9 +85,10 @@ void *_threadInserter(void *bkdTree)
 
     for (int i = 0; i < THREAD_BUFFER_SIZE; i++)
     {
-        threadData[i].cordinates[0] = (float)i;
-        threadData[i].cordinates[1] = (float)i;
-        strcpy(threadData[i].location, "Input");
+        // threadData[i].cordinates[0] = (float)i;
+        // threadData[i].cordinates[1] = (float)i;
+        // strcpy(threadData[i].location, "Input");
+        tree->API->fetchRandom(&threadData[i]);
     }
 
     int size, updatedSize;
@@ -237,13 +239,13 @@ void BkdTree::_bulkloadTree()
 
         std::sort(&values[d * numNodes], &values[d * numNodes + numNodes], dataNodeCMP(d));
     }
-    /*for (int i = 0; i < numNodes; i++)
+    for (int i = 0; i < numNodes; i++)
     {
         printf("|%d|(%f,%f):%s\n", i,
                values[i].cordinates[0],
                values[i].cordinates[1],
                values[i].location);
-    }*/
+    }
 
     KdbTree *tree = KdbCreateTree(values, numNodes);
     globalWriteTrees[treeArrayLocation] = tree;

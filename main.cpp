@@ -2,6 +2,7 @@
 #include "includes/Config.h"
 #include "includes/BkdTree.h"
 #include "includes/KdbTree.h"
+#include "includes/MockAPI.h"
 #include <atomic>
 #include <string.h>
 // #define NUM_NODES 1024
@@ -27,20 +28,6 @@ int main()
         pthread_join(threads[i], NULL);
     }
 
-    /*for (int i = 0; i < 8; i++)
-    {
-        _threadInserter(tree);
-    }
-
-    printf("Tree size %d\n", tree->globalDiskSize.load());
-    for (int i = 0; i < tree->globalDiskSize.load(); i++)
-    {
-        printf("|%d|(%f,%f):%s\n", i,
-               tree->globalDisk[i].cordinates[0],
-               tree->globalDisk[i].cordinates[1],
-               tree->globalDisk[i].location);
-    }
-    */
     delete tree;
     // delete tree;
     pthread_exit(NULL);

@@ -5,6 +5,7 @@
 #include "Config.h"
 #include "MemoryStructures.h"
 #include "KdbTree.h"
+#include "MockAPI.h"
 
 class BkdTree
 {
@@ -15,7 +16,7 @@ public:
     // int insert(DataNode *value);
     int insert(DataNode *values);
     // int remove(float index[DIMENSIONS]);
-
+    MockApi *API;
     DataNode *globalMemory;
     atomic<int> globalMemorySize;
 
@@ -29,9 +30,6 @@ public:
     pthread_mutex_t bulkingLock;
     atomic<int> treeBulkingStatus[MAX_BULKLOAD_LEVEL]; // 0 -> free, 1 -> stored tree, -1 -> currently bulkloading
     KdbTree *globalWriteTrees[MAX_BULKLOAD_LEVEL];
-
-    // structures currently beeing processed can be temporarily accessed here
-    // list<void *> readSafeStructures;
 
     // list<KdbTree> *globalReadTree; //list pointer for readers (RCU)
 

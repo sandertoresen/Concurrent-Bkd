@@ -7,16 +7,19 @@ class MockApi
 {
 public:
     MockApi();
+    MockApi(int valuesPerThread);
     ~MockApi();
 
     DataNode *fetchData(int threadNum);
+    DataNode *fetchRandom(DataNode *node);
+    void insertData(DataNode *data, int size);
 
-private:
-    DataNode *mockData[NUM_THREADS];
-    int count[NUM_THREADS];
+    // private:
+    DataNode *mockData;
+    int dataPerThread;
+    int threadCounter[NUM_THREADS];
 
     int generateMockData();
-
     int loadMockData(char *FILE);
 };
 
