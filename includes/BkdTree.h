@@ -30,7 +30,7 @@ public:
     // must assert no other readers have started bulkloading in the meantime, might require lock
 
     pthread_mutex_t bulkingLock;
-    atomic<int> treeStorageStatus[MAX_BULKLOAD_LEVEL]; // 0 -> free, 1 -> stored tree
+
     KdbTree *globalWriteTrees[MAX_BULKLOAD_LEVEL];
 
     list<KdbTree *> largeTrees;
@@ -39,10 +39,10 @@ public:
     void _bulkloadTree();
 
     atomic<long> treeId = 0;
-    atomic<long> arrayId = 0;
 
     // read values
-    unordered_map<int, AtomicTreeElement *> readableTrees;
+    AtomicUnorderedMapElement *globalReadMap;
+    pthread_mutex_t globalReadMapWriteLock;
 };
 
 // have thread functions which just encapsulates BkdTree calls(?)

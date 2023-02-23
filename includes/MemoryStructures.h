@@ -15,9 +15,17 @@ struct DataNode
 struct AtomicTreeElement
 {
     // readers flag
-    int treeId; // id for writers to locate variable
-    atomic<int> readers;
-    KdbTree *treeList;
+    long treeId; // id for writers to locate variable
+    atomic<int> readers = 0;
+    atomic<bool> deleted = false;
+    KdbTree *tree;
+};
+
+struct AtomicUnorderedMapElement
+{
+    atomic<int> readers = 0;
+    atomic<bool> deleted = false;
+    unordered_map<long, AtomicTreeElement *> *readableTrees;
 };
 
 #endif

@@ -22,7 +22,7 @@ public:
     }
 };
 
-inline int generateUniqueId(atomic<int> &counter)
+inline long generateUniqueId(atomic<long> &counter)
 {
     return counter.fetch_add(1);
 }
@@ -35,7 +35,6 @@ BkdTree::BkdTree() // default constructor
     globalMemorySize = 0;
 
     fill_n(globalChunkReady, GLOBAL_B_CHUNK_SIZE, false);
-    fill_n(treeStorageStatus, MAX_BULKLOAD_LEVEL, 0);
     globalDisk = NULL;
     globalDiskSize = 0;
 
@@ -61,12 +60,9 @@ BkdTree::~BkdTree() // Destructor
     }
     for (int i = 0; i < MAX_BULKLOAD_LEVEL; i++)
     {
-        if (treeStorageStatus[i] == -1)
-        {
-            printf("Error thread still working on tree after deconstruction!\n");
-            exit(-1);
-        }
-        if (treeStorageStatus[i] == 1)
+        // TODO ask for globalWriteTrees lock?
+
+        if (globalWriteTrees[i] != NULL)
         {
             KdbDestroyTree(globalWriteTrees[i]);
         }
@@ -159,8 +155,7 @@ void *_threadInserter(void *bkdTree)
 // pointers to take in Memory array, Disk array
 void BkdTree::_bulkloadTree()
 {
-    /* Function assumption: we only need to do one bulkload at a time, remove all syncronization lingo*/
-    // Clear globalDisk and globalMem
+    /* Function assumption: we only need to do one bulkload at a time */
     DataNode *localMemory = globalMemory;
     DataNode *localDisk = globalDisk;
 
@@ -177,22 +172,14 @@ void BkdTree::_bulkloadTree()
 
     pthread_mutex_lock(&bulkingLock);
 
-    /*
-    Fix everything needed with syncronization
-    TODOS:
-    - Define work area and which trees will be merged
-    - Remove trees we're working on from writeTree list
-    - Add trees we're working on to ReadTree list
-    - update bulkingArray(?)
-    */
-    list<KdbTree *> mergedTreeList;
+    list<KdbTree *> mergeTreeList;
     int treeArrayLocation = 0;
 
     for (int currentTree = 0; currentTree < MAX_BULKLOAD_LEVEL; currentTree++)
     {
         int endTree = 0;
 
-        if (treeStorageStatus[currentTree].load() == 1)
+        if (globalWriteTrees[currentTree] != NULL)
         {
             if (currentTree + 1 != MAX_BULKLOAD_LEVEL)
                 continue;
@@ -208,26 +195,16 @@ void BkdTree::_bulkloadTree()
 
         for (int previousTree = 0; previousTree < endTree; previousTree++)
         {
-            if (treeStorageStatus[previousTree] == 1)
-            {
-                mergedTreeList.push_back(globalWriteTrees[previousTree]);
-                numNodes += globalWriteTrees[previousTree]->size;
-                globalWriteTrees[previousTree] = NULL;
-                treeStorageStatus[previousTree] = 0;
-            }
-            else
-            {
-                printf("Code %d error this shouldn't happen TODO remove\n", treeStorageStatus[previousTree]);
-                exit(-1);
-            }
+            mergeTreeList.push_back(globalWriteTrees[previousTree]);
+            numNodes += globalWriteTrees[previousTree]->size;
+            globalWriteTrees[previousTree] = NULL;
 
-            // treeStorageStatus[currentTree] = -1; // set to working on
             if (treeArrayLocation != -1)
                 treeArrayLocation = currentTree;
+
             break;
         }
     }
-    // pthread_mutex_unlock(&bulkingLock); //TODO CONCURRENT BULKLOAD NOT YET SUPPORTED!
 
     DataNode *values = new DataNode[numNodes * DIMENSIONS];
 
@@ -238,7 +215,7 @@ void BkdTree::_bulkloadTree()
     delete[] localDisk;
 
     int offset = localMemorySize + localDiskSize;
-    for (std::list<KdbTree *>::iterator itr = mergedTreeList.begin(); itr != mergedTreeList.end(); ++itr)
+    for (std::list<KdbTree *>::iterator itr = mergeTreeList.begin(); itr != mergeTreeList.end(); ++itr)
     {
         KdbTree *treePtr = *itr;
         KdbTreeFetchNodes(treePtr, &values[offset]);
@@ -253,36 +230,58 @@ void BkdTree::_bulkloadTree()
         std::sort(&values[d * numNodes], &values[d * numNodes + numNodes], dataNodeCMP(d));
     }
 
-    KdbTree *tree = KdbCreateTree(values, numNodes);
+    KdbTree *tree = KdbCreateTree(values, numNodes, generateUniqueId(treeId));
 
     if (treeArrayLocation != -1)
     { // store normal tree
         globalWriteTrees[treeArrayLocation] = tree;
-        treeStorageStatus[treeArrayLocation].store(1);
     }
     else
     { // store large tree
-        printf("Status: ");
-        for (int i = 0; i < MAX_BULKLOAD_LEVEL; i++)
-        {
-            printf("%d, ", treeStorageStatus[treeArrayLocation].load());
-        }
-        printf("remove if NULLS\n");
         largeTrees.push_back(tree);
     }
+    // TODO: use writelock if multiple trees can update this section Create new map, rcu update
+    AtomicUnorderedMapElement *mapCopy = new AtomicUnorderedMapElement;
+    mapCopy->readableTrees = new unordered_map<long, AtomicTreeElement *>(*globalReadMap->readableTrees);
+
+    AtomicTreeElement *treeContainer = new AtomicTreeElement;
+    treeContainer->tree = tree;
+    treeContainer->treeId = tree->id;
+    mapCopy->readableTrees->insert(make_pair(tree->id, treeContainer));
+
+    AtomicUnorderedMapElement *oldMap = globalReadMap;
+    globalReadMap = mapCopy;
+
+    oldMap->deleted.store(true);
+    if (oldMap->readers.load() <= 0)
+    {
+        delete oldMap->readableTrees;
+        delete oldMap;
+    }
     pthread_mutex_unlock(&bulkingLock);
-    // TODO update Read log and remove merged trees from it
 
     // remove old nodes
     delete[] values;
 
-    for (std::list<KdbTree *>::iterator itr = mergedTreeList.begin(); itr != mergedTreeList.end(); ++itr)
-    {
-        // TODO DO READ TREES SHIT
-        KdbDestroyTree(*itr);
-        mergedTreeList.erase(itr++);
+    for (std::list<KdbTree *>::iterator itr = mergeTreeList.begin(); itr != mergeTreeList.end(); ++itr)
+    { // Fetch merged trees from readable trees and mark them as removed
+
+        KdbTree *tmpTree = *itr;
+        unordered_map<long, AtomicTreeElement *>::iterator it = readableTrees.find(tmpTree->id);
+        if (it != readableTrees.end())
+        {
+            AtomicTreeElement *value = it->second;
+            value->deleted.store(true);
+            if (value->readers.load() <= 0)
+            {
+                KdbDestroyTree(value->tree);
+                value->tree = NULL;
+            }
+        }
+        // TODO: does deleting the tree crash the iterator(?)
+
+        mergeTreeList.erase(itr++);
     }
-    // delete list<KdbTree *> mergedTreeList;
 }
 
 /*
@@ -303,5 +302,19 @@ void BkdTree::_bulkloadTree()
 
     1. struct
     2. list
+
+    IGJENN readers oppgave:
+     1. hente ut en lokal versjon av GlobalMap
+        - iterer over AtomicTreeElement assert element ikke er slettet
+            -> reader++, sjekk if slettet, hvis slettet og reader == 1 sjekk at tree == NULL før dra videre
+        - tree ikke slettet: les data
+            -> ferdiglest:
+                - reader--
+                - sjekk at treet ikke er slettet
+                    -> hvis slettet sjekk at reader != 0
+                        -> hvis == 0, sjekk at tree == NULL
+                            -> hvis ikke, slett treet
+
+
 
 */
