@@ -1,6 +1,7 @@
 #ifndef MEMORY_STRUCTURES_H
 #define MEMORY_STRUCTURES_H
 #include <atomic>
+#include <list>
 #include "Config.h"
 
 using namespace std;
@@ -11,15 +12,12 @@ struct DataNode
     char location[CHARACTER_LIMIT];
 };
 
-// struct KDB_Leaf
-// {
-//     DataNode LeafArray[KDB_LEAF_SIZE];
-// };
-
-// struct GlobalMemoryDataNodeBuffer
-// {
-//     DataNode globalMemoryDataNodes[GLOBAL_BUFFER_SIZE];
-//     atomic<int> globalSize;
-// };
+struct AtomicTreeElement
+{
+    // readers flag
+    int treeId; // id for writers to locate variable
+    atomic<int> readers;
+    KdbTree *treeList;
+};
 
 #endif

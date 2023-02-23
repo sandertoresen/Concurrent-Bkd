@@ -75,3 +75,11 @@ DataNode *MockApi::fetchRandom(DataNode *node)
 
     return node;
 }
+
+MockApi::~MockApi()
+{
+    if (mockData != NULL)
+    {
+        delete[] mockData;
+    }
+}

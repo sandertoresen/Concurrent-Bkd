@@ -22,6 +22,11 @@ public:
     }
 };
 
+inline int generateUniqueId(atomic<int> &counter)
+{
+    return counter.fetch_add(1);
+}
+
 BkdTree::BkdTree() // default constructor
 {
     printf("Constructur runs!\n");
@@ -30,7 +35,7 @@ BkdTree::BkdTree() // default constructor
     globalMemorySize = 0;
 
     fill_n(globalChunkReady, GLOBAL_B_CHUNK_SIZE, false);
-    fill_n(treeBulkingStatus, MAX_BULKLOAD_LEVEL, 0);
+    fill_n(treeStorageStatus, MAX_BULKLOAD_LEVEL, 0);
     globalDisk = NULL;
     globalDiskSize = 0;
 
@@ -56,16 +61,18 @@ BkdTree::~BkdTree() // Destructor
     }
     for (int i = 0; i < MAX_BULKLOAD_LEVEL; i++)
     {
-        if (treeBulkingStatus[i] == -1)
+        if (treeStorageStatus[i] == -1)
         {
             printf("Error thread still working on tree after deconstruction!\n");
             exit(-1);
         }
-        if (treeBulkingStatus[i] == 1)
+        if (treeStorageStatus[i] == 1)
         {
             KdbDestroyTree(globalWriteTrees[i]);
         }
     }
+
+    delete API;
 }
 
 // Thread should spin and fetch datapoints from an API until it ThreadDataNodeBuffer is full
@@ -152,6 +159,7 @@ void *_threadInserter(void *bkdTree)
 // pointers to take in Memory array, Disk array
 void BkdTree::_bulkloadTree()
 {
+    /* Function assumption: we only need to do one bulkload at a time, remove all syncronization lingo*/
     // Clear globalDisk and globalMem
     DataNode *localMemory = globalMemory;
     DataNode *localDisk = globalDisk;
@@ -178,43 +186,48 @@ void BkdTree::_bulkloadTree()
     - update bulkingArray(?)
     */
     list<KdbTree *> mergedTreeList;
-    int treeArrayLocation = -1;
-
-    // while (treeArrayLocation == -1) //TODO: spin untill slot opens up
-    // if all are full, merge them all together to large tree
+    int treeArrayLocation = 0;
 
     for (int currentTree = 0; currentTree < MAX_BULKLOAD_LEVEL; currentTree++)
     {
-        if (treeBulkingStatus[currentTree].load() != 0)
-            continue;
+        int endTree = 0;
 
-        for (int previousTree = 0; previousTree < currentTree; previousTree++)
+        if (treeStorageStatus[currentTree].load() == 1)
         {
-            if (treeBulkingStatus[previousTree] == 1)
+            if (currentTree + 1 != MAX_BULKLOAD_LEVEL)
+                continue;
+            else
+            {
+                treeArrayLocation = -1;
+                endTree = MAX_BULKLOAD_LEVEL;
+            }
+        }
+
+        if (endTree == 0)
+            endTree = currentTree;
+
+        for (int previousTree = 0; previousTree < endTree; previousTree++)
+        {
+            if (treeStorageStatus[previousTree] == 1)
             {
                 mergedTreeList.push_back(globalWriteTrees[previousTree]);
                 numNodes += globalWriteTrees[previousTree]->size;
                 globalWriteTrees[previousTree] = NULL;
-                treeBulkingStatus[previousTree] = 0;
+                treeStorageStatus[previousTree] = 0;
             }
             else
             {
-                // TODO: get thread to cancel bulk load and return nodes
-                // -> expect to recive DataNode array with size
-                // -> how to communicate and share data between threads(?)
-                //      -> instead of -1, could use flag to communicate where to "post messages to eachother"!
-                //      -> create messaging system with struct{DataNode *arr, int arrSize, bool cancel}
-                //      -> list/array of structs(?)
-                printf("OBS!.. bulkLoading conflict not yet handled....\n");
-                exit(0);
+                printf("Code %d error this shouldn't happen TODO remove\n", treeStorageStatus[previousTree]);
+                exit(-1);
             }
-        }
-        treeBulkingStatus[currentTree] = -1; // set to working on
-        treeArrayLocation = currentTree;
-        break;
-    }
 
-    pthread_mutex_unlock(&bulkingLock);
+            // treeStorageStatus[currentTree] = -1; // set to working on
+            if (treeArrayLocation != -1)
+                treeArrayLocation = currentTree;
+            break;
+        }
+    }
+    // pthread_mutex_unlock(&bulkingLock); //TODO CONCURRENT BULKLOAD NOT YET SUPPORTED!
 
     DataNode *values = new DataNode[numNodes * DIMENSIONS];
 
@@ -239,28 +252,56 @@ void BkdTree::_bulkloadTree()
 
         std::sort(&values[d * numNodes], &values[d * numNodes + numNodes], dataNodeCMP(d));
     }
-    for (int i = 0; i < numNodes; i++)
-    {
-        printf("|%d|(%f,%f):%s\n", i,
-               values[i].cordinates[0],
-               values[i].cordinates[1],
-               values[i].location);
-    }
 
     KdbTree *tree = KdbCreateTree(values, numNodes);
-    globalWriteTrees[treeArrayLocation] = tree;
-    treeBulkingStatus[treeArrayLocation].store(1);
+
+    if (treeArrayLocation != -1)
+    { // store normal tree
+        globalWriteTrees[treeArrayLocation] = tree;
+        treeStorageStatus[treeArrayLocation].store(1);
+    }
+    else
+    { // store large tree
+        printf("Status: ");
+        for (int i = 0; i < MAX_BULKLOAD_LEVEL; i++)
+        {
+            printf("%d, ", treeStorageStatus[treeArrayLocation].load());
+        }
+        printf("remove if NULLS\n");
+        largeTrees.push_back(tree);
+    }
+    pthread_mutex_unlock(&bulkingLock);
     // TODO update Read log and remove merged trees from it
 
     // remove old nodes
     delete[] values;
-    // delete list<KdbTree *> mergedTreeList;
 
     for (std::list<KdbTree *>::iterator itr = mergedTreeList.begin(); itr != mergedTreeList.end(); ++itr)
     {
+        // TODO DO READ TREES SHIT
         KdbDestroyTree(*itr);
         mergedTreeList.erase(itr++);
     }
-
-    // __printKdbTree(tree);
+    // delete list<KdbTree *> mergedTreeList;
 }
+
+/*
+    Problemstilling:
+    Problem:
+        trenger concurrent list med trær som kan RCU
+    MVP:
+        liste med struct som inneholder atomiske flagg
+        start: ingen cleanup
+        start: ikke lagre arrays (FILL)
+
+
+    ADDITIONS:
+        locked(list cleanup)
+
+    LATER:
+        Readers free data if int readers < 0
+
+    1. struct
+    2. list
+
+*/

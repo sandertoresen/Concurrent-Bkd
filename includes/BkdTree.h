@@ -1,6 +1,7 @@
 #ifndef BKD_TREE_H
 #define BKD_TREE_H
 #include <list>
+#include <unordered_map>
 #include <cstdarg>
 #include "Config.h"
 #include "MemoryStructures.h"
@@ -15,6 +16,7 @@ public:
 
     // int insert(DataNode *value);
     int insert(DataNode *values);
+    void windowLookup(list<DataNode> &values, int window[DIMENSIONS][2]);
     // int remove(float index[DIMENSIONS]);
     MockApi *API;
     DataNode *globalMemory;
@@ -28,17 +30,19 @@ public:
     // must assert no other readers have started bulkloading in the meantime, might require lock
 
     pthread_mutex_t bulkingLock;
-    atomic<int> treeBulkingStatus[MAX_BULKLOAD_LEVEL]; // 0 -> free, 1 -> stored tree, -1 -> currently bulkloading
+    atomic<int> treeStorageStatus[MAX_BULKLOAD_LEVEL]; // 0 -> free, 1 -> stored tree
     KdbTree *globalWriteTrees[MAX_BULKLOAD_LEVEL];
 
+    list<KdbTree *> largeTrees;
     // list<KdbTree> *globalReadTree; //list pointer for readers (RCU)
 
     void _bulkloadTree();
 
-    // list<KDB_Tree> firstTreeStorage // same growth sequence as prepatory project
+    atomic<long> treeId = 0;
+    atomic<long> arrayId = 0;
 
-    // list<KDB_Tree> trees of a sertain size
-    // num trees of sertain size
+    // read values
+    unordered_map<int, AtomicTreeElement *> readableTrees;
 };
 
 // have thread functions which just encapsulates BkdTree calls(?)

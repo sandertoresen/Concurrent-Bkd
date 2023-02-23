@@ -18,3 +18,6 @@ program: $(PROGRAM_SRC) $(HEADERS) Makefile
 
 clean:
 	rm -f *~ *.o *.exe *.stackdump 
+
+
+# valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose ./program
