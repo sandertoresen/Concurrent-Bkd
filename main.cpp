@@ -35,20 +35,20 @@ void *_windowLookup(void *input)
 
     */
 
-    pthread_exit(NULL);
-}
-
-int main()
-{
-    BkdTree *tree = new BkdTree;
-
-    windowLookupInput *input = new windowLookupInput;
+    /*windowLookupInput *input = new windowLookupInput;
     input->tree = tree;
     for (int d = 0; d < DIMENSIONS; d++)
     {
         input->window[d][0] = 0;
         input->window[d][1] = 1000;
-    }
+    }*/
+
+    pthread_exit(nullptr);
+}
+
+int main()
+{
+    BkdTree *tree = new BkdTree;
 
     pthread_t threads[NUM_THREADS];
     int rc;
@@ -57,23 +57,18 @@ int main()
     for (i = 0; i < NUM_THREADS; i++)
     {
         //   cout << "main() : creating thread, " << i << endl;
-        // rc = pthread_create(&threads[i], NULL, _threadInserter, (void *)tree);
-        rc = pthread_create(&threads[i], NULL, _windowLookup, (void *)input);
+        // rc = pthread_create(&threads[i], nullptr, _threadInserter, (void *)tree);
+        rc = pthread_create(&threads[i], nullptr, _threadInserter, (void *)tree);
         if (rc)
         {
             cout << "Error:unable to create thread," << rc << endl;
             exit(-1);
         }
-        pthread_join(threads[i], NULL);
+        pthread_join(threads[i], nullptr);
     }
 
-    for (std::list<DataNode *>::iterator itr = input->results.begin(); itr != input->results.end(); ++itr)
-    {
-        DataNode *tmp = *itr;
-        printf("God: %s\n", tmp->location);
-    }
     delete tree;
-    pthread_exit(NULL);
+    pthread_exit(nullptr);
     // delete tree;
 }
 

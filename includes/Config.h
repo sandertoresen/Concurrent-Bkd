@@ -17,6 +17,6 @@
 // max (GLOBAL_BUFFER_SIZE * 2) * 5 size trees
 #define MAX_BULKLOAD_LEVEL 5
 
-#define NUM_THREADS 5
+#define NUM_THREADS 32
 
 #endif

@@ -62,7 +62,7 @@ MockApi::MockApi()
 DataNode *MockApi::fetchData(int threadNum)
 {
     if (threadCounter[threadNum] >= dataPerThread)
-        return NULL;
+        return nullptr;
 
     return &mockData[threadCounter[threadNum]++];
 }
@@ -78,7 +78,7 @@ DataNode *MockApi::fetchRandom(DataNode *node)
 
 MockApi::~MockApi()
 {
-    if (mockData != NULL)
+    if (mockData != nullptr)
     {
         delete[] mockData;
     }

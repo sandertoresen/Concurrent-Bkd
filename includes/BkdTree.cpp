@@ -2,10 +2,12 @@
 #include <list>
 #include <string.h>
 #include <algorithm>
-#include <cmath>
 #include "Config.h"
 #include "BkdTree.h"
 #include "KdbTree.h"
+#include "MockAPI.h"
+#include "ThreadStructures.h"
+#include "RCUContainers.h"
 
 class dataNodeCMP
 {
@@ -35,10 +37,11 @@ BkdTree::BkdTree() // default constructor
     globalMemorySize = 0;
 
     fill_n(globalChunkReady, GLOBAL_B_CHUNK_SIZE, false);
-    globalDisk = NULL;
+    fill_n(globalWriteTrees, MAX_BULKLOAD_LEVEL, nullptr);
+    globalDisk = nullptr;
     globalDiskSize = 0;
 
-    if (pthread_mutex_init(&bulkingLock, NULL) != 0)
+    if (pthread_mutex_init(&bulkingLock, nullptr) != 0)
     {
         printf("\n mutex init has failed\n");
         exit(0);
@@ -48,26 +51,46 @@ BkdTree::BkdTree() // default constructor
 BkdTree::~BkdTree() // Destructor
 {
     printf("Destructor runs!\n");
-    if (globalMemory != NULL)
+    if (globalMemory != nullptr)
     {
         printf("delete global!\n");
         delete[] globalMemory;
     }
 
-    if (globalDisk != NULL)
+    if (globalDisk != nullptr)
     {
         delete[] globalDisk;
     }
-    for (int i = 0; i < MAX_BULKLOAD_LEVEL; i++)
+    /*for (int i = 0; i < MAX_BULKLOAD_LEVEL; i++)
     {
         // TODO ask for globalWriteTrees lock?
 
-        if (globalWriteTrees[i] != NULL)
+        if (globalWriteTrees[i] != nullptr)
         {
             KdbDestroyTree(globalWriteTrees[i]);
         }
-    }
+    }*/
 
+    if (globalReadMap != nullptr)
+    {
+        for (auto it = globalReadMap->readableTrees->begin(); it != globalReadMap->readableTrees->end();)
+        {
+            AtomicTreeElement *tmp = it->second;
+            if (tmp->readers.load() <= 0)
+            {
+                KdbDestroyTree(tmp->tree);
+                delete tmp;
+                it = globalReadMap->readableTrees->erase(it);
+            }
+            else
+            {
+                printf("ERROR| Active readers after deconstruction!\n");
+                exit(-1);
+            }
+        }
+        delete globalReadMap->readableTrees;
+        delete globalReadMap;
+    }
     delete API;
 }
 
@@ -116,7 +139,7 @@ void *_threadInserter(void *bkdTree)
     // Tree now full -> handle data
     if (updatedSize < GLOBAL_BUFFER_SIZE)
     {
-        pthread_exit(NULL);
+        pthread_exit(nullptr);
     }
 
     bool moreWork = true;
@@ -129,7 +152,7 @@ void *_threadInserter(void *bkdTree)
         }
     }
 
-    if (tree->globalDisk == NULL)
+    if (tree->globalDisk == nullptr)
     {
         tree->globalDisk = tree->globalMemory;
         tree->globalDiskSize.store(GLOBAL_BUFFER_SIZE);
@@ -140,7 +163,7 @@ void *_threadInserter(void *bkdTree)
         tree->globalMemorySize.store(0);
         printf("Used globalDisk\n");
 
-        pthread_exit(NULL);
+        pthread_exit(nullptr);
     }
 
     printf("Start bulkload\n");
@@ -149,7 +172,7 @@ void *_threadInserter(void *bkdTree)
 
     tree->_bulkloadTree();
 
-    pthread_exit(NULL);
+    pthread_exit(nullptr);
 }
 
 // pointers to take in Memory array, Disk array
@@ -164,7 +187,7 @@ void BkdTree::_bulkloadTree()
 
     globalMemory = new DataNode[GLOBAL_BUFFER_SIZE];
     fill_n(globalChunkReady, GLOBAL_B_CHUNK_SIZE, false);
-    globalDisk = NULL;
+    globalDisk = nullptr;
     globalDiskSize.store(0);
     globalMemorySize.store(0);
 
@@ -179,7 +202,7 @@ void BkdTree::_bulkloadTree()
     {
         int endTree = 0;
 
-        if (globalWriteTrees[currentTree] != NULL)
+        if (globalWriteTrees[currentTree] != nullptr)
         {
             if (currentTree + 1 != MAX_BULKLOAD_LEVEL)
                 continue;
@@ -189,7 +212,6 @@ void BkdTree::_bulkloadTree()
                 endTree = MAX_BULKLOAD_LEVEL;
             }
         }
-
         if (endTree == 0)
             endTree = currentTree;
 
@@ -197,13 +219,12 @@ void BkdTree::_bulkloadTree()
         {
             mergeTreeList.push_back(globalWriteTrees[previousTree]);
             numNodes += globalWriteTrees[previousTree]->size;
-            globalWriteTrees[previousTree] = NULL;
+            globalWriteTrees[previousTree] = nullptr;
 
             if (treeArrayLocation != -1)
                 treeArrayLocation = currentTree;
-
-            break;
         }
+        break;
     }
 
     DataNode *values = new DataNode[numNodes * DIMENSIONS];
@@ -242,7 +263,39 @@ void BkdTree::_bulkloadTree()
     }
     // TODO: use writelock if multiple trees can update this section Create new map, rcu update
     AtomicUnorderedMapElement *mapCopy = new AtomicUnorderedMapElement;
-    mapCopy->readableTrees = new unordered_map<long, AtomicTreeElement *>(*globalReadMap->readableTrees);
+
+    if (globalReadMap == nullptr)
+    {
+        mapCopy->readableTrees = new unordered_map<long, AtomicTreeElement *>();
+    }
+    else
+    {
+        mapCopy->readableTrees = new unordered_map<long,
+                                                   AtomicTreeElement *>(*globalReadMap->readableTrees);
+    }
+
+    for (auto it = mapCopy->readableTrees->begin(); it != mapCopy->readableTrees->end();)
+    {
+        AtomicTreeElement *tmp = it->second;
+        if (tmp->deleted.load())
+        {
+            if (tmp->readers.load() <= 0)
+            {
+                KdbDestroyTree(tmp->tree);
+                delete tmp;
+                it = mapCopy->readableTrees->erase(it);
+            }
+            else
+            {
+                // Active readers, don't delete
+                ++it;
+            }
+        }
+        else
+        {
+            ++it;
+        }
+    }
 
     AtomicTreeElement *treeContainer = new AtomicTreeElement;
     treeContainer->tree = tree;
@@ -252,35 +305,39 @@ void BkdTree::_bulkloadTree()
     AtomicUnorderedMapElement *oldMap = globalReadMap;
     globalReadMap = mapCopy;
 
-    oldMap->deleted.store(true);
-    if (oldMap->readers.load() <= 0)
+    if (oldMap != nullptr)
     {
-        delete oldMap->readableTrees;
-        delete oldMap;
+        oldMap->deleted.store(true);
+        if (oldMap->readers.load() <= 0)
+        {
+            delete oldMap->readableTrees;
+            delete oldMap;
+        }
     }
     pthread_mutex_unlock(&bulkingLock);
 
     // remove old nodes
     delete[] values;
 
-    for (std::list<KdbTree *>::iterator itr = mergeTreeList.begin(); itr != mergeTreeList.end(); ++itr)
+    for (std::list<KdbTree *>::iterator itr = mergeTreeList.begin(); itr != mergeTreeList.end();)
     { // Fetch merged trees from readable trees and mark them as removed
 
         KdbTree *tmpTree = *itr;
-        unordered_map<long, AtomicTreeElement *>::iterator it = readableTrees.find(tmpTree->id);
-        if (it != readableTrees.end())
+        // TODO: can this access cause ADA problem? probably not as large trees never interfer with small trees..
+        unordered_map<long, AtomicTreeElement *>::iterator it = globalReadMap->readableTrees->find(tmpTree->id);
+        if (it != globalReadMap->readableTrees->end())
         {
             AtomicTreeElement *value = it->second;
             value->deleted.store(true);
             if (value->readers.load() <= 0)
             {
                 KdbDestroyTree(value->tree);
-                value->tree = NULL;
+                value->tree = nullptr;
             }
         }
         // TODO: does deleting the tree crash the iterator(?)
 
-        mergeTreeList.erase(itr++);
+        itr = mergeTreeList.erase(itr);
     }
 }
 
@@ -306,13 +363,13 @@ void BkdTree::_bulkloadTree()
     IGJENN readers oppgave:
      1. hente ut en lokal versjon av GlobalMap
         - iterer over AtomicTreeElement assert element ikke er slettet
-            -> reader++, sjekk if slettet, hvis slettet og reader == 1 sjekk at tree == NULL før dra videre
+            -> reader++, sjekk if slettet, hvis slettet og reader == 1 sjekk at tree == nullptr før dra videre
         - tree ikke slettet: les data
             -> ferdiglest:
                 - reader--
                 - sjekk at treet ikke er slettet
                     -> hvis slettet sjekk at reader != 0
-                        -> hvis == 0, sjekk at tree == NULL
+                        -> hvis == 0, sjekk at tree == nullptr
                             -> hvis ikke, slett treet
 
 

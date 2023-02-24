@@ -1,12 +1,11 @@
 KDB_TREE_SRC= includes/KdbTree.cpp
-MEMORY_STRUCTURES_SRC= includes/MemoryStructures.cpp
 BKD_TREE_SRC= includes/BkdTree.cpp
 MOCK_API_SRC= includes/MockAPI.cpp
 MAIN_SRC= main.cpp
 
-PROGRAM_SRC=$(MAIN_SRC) $(MEMORY_STRUCTURES_SRC) $(BKD_TREE_SRC) $(KDB_TREE_SRC) $(MOCK_API_SRC)
+PROGRAM_SRC=$(MAIN_SRC) $(BKD_TREE_SRC) $(KDB_TREE_SRC) $(MOCK_API_SRC)
 
-HEADERS=includes/Config.h includes/MemoryStructures.h includes/BkdTree.h includes/KdbTree.h includes/MockAPI.h
+HEADERS=includes/Config.h includes/MemoryStructures.h includes/ThreadStructures.h includes/RCUContainers.h includes/BkdTree.h includes/KdbTree.h includes/MockAPI.h
 
 
 

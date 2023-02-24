@@ -2,11 +2,12 @@
 #define BKD_TREE_H
 #include <list>
 #include <unordered_map>
-#include <cstdarg>
 #include "Config.h"
-#include "MemoryStructures.h"
-#include "KdbTree.h"
-#include "MockAPI.h"
+#include "RCUContainers.h"
+
+struct DataNode;
+struct KdbTree;
+class MockApi;
 
 class BkdTree
 {
@@ -41,7 +42,7 @@ public:
     atomic<long> treeId = 0;
 
     // read values
-    AtomicUnorderedMapElement *globalReadMap;
+    AtomicUnorderedMapElement *globalReadMap = nullptr;
     pthread_mutex_t globalReadMapWriteLock;
 };
 

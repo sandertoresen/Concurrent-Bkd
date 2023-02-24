@@ -15,7 +15,7 @@ public:
     void insertData(DataNode *data, int size);
 
     // private:
-    DataNode *mockData = NULL;
+    DataNode *mockData = nullptr;
     int dataPerThread;
     int threadCounter[NUM_THREADS];
 
