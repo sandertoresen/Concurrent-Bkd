@@ -5,35 +5,13 @@
 #include "includes/MockAPI.h"
 #include "includes/MemoryStructures.h"
 #include "includes/ThreadStructures.h"
+#include "includes/tests.h"
 #include <atomic>
 #include <string.h>
 
 void *_windowLookup(void *input)
 {
     // TODO: start with single thread looking for all data
-
-    windowLookupInput *data = (windowLookupInput *)input;
-    DataNode *val = new DataNode;
-    strcpy(val->location, "Input");
-    data->results.push_back(val);
-
-    /*
-    - lookup global mem
-    - lookup global disk
-    - lookup first tree list
-    - tree list of N size
-    - tree list of N++ sizes
-
-    - Which way should i read(?)
-    new -> old?
-    old -> new?
-
-    make structures read safe with atomic flags
-
-    assert i don't add duplicates to result list?
-    assert values are not deleted
-
-    */
 
     /*windowLookupInput *input = new windowLookupInput;
     input->tree = tree;
@@ -50,7 +28,7 @@ int main()
 {
     BkdTree *tree = new BkdTree;
 
-    pthread_t threads[NUM_THREADS];
+    /*pthread_t threads[NUM_THREADS];
     int rc;
     int i;
 
@@ -65,11 +43,16 @@ int main()
             exit(-1);
         }
         pthread_join(threads[i], nullptr);
-    }
+    }*/
+    // printf("test\n");
+    _test_kdb_tree_memory_leak();
+    // for (int i = 0; i < NUM_THREADS; i++)
+    // {
+    //     _threadInserter((void *)tree);
+    // }
 
     delete tree;
-    pthread_exit(nullptr);
-    // delete tree;
+    // pthread_exit(nullptr);
 }
 
 /*

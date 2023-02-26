@@ -139,7 +139,8 @@ void *_threadInserter(void *bkdTree)
     // Tree now full -> handle data
     if (updatedSize < GLOBAL_BUFFER_SIZE)
     {
-        pthread_exit(nullptr);
+        // pthread_exit(nullptr);
+        return NULL;
     }
 
     bool moreWork = true;
@@ -163,7 +164,8 @@ void *_threadInserter(void *bkdTree)
         tree->globalMemorySize.store(0);
         printf("Used globalDisk\n");
 
-        pthread_exit(nullptr);
+        // pthread_exit(nullptr);
+        return NULL;
     }
 
     printf("Start bulkload\n");
@@ -172,7 +174,8 @@ void *_threadInserter(void *bkdTree)
 
     tree->_bulkloadTree();
 
-    pthread_exit(nullptr);
+    // pthread_exit(nullptr);
+    return NULL;
 }
 
 // pointers to take in Memory array, Disk array
