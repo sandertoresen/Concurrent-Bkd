@@ -1,5 +1,7 @@
 *
+!*/
 !*.cpp
 !*.h
-!includes/*
+!includes/
 !Makefile
+!*.*

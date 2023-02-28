@@ -1,41 +1,19 @@
 #include <iostream>
+// #include "includes/tests.h"
 #include "includes/Config.h"
 #include "includes/BkdTree.h"
-#include "includes/KdbTree.h"
-#include "includes/MockAPI.h"
-#include "includes/MemoryStructures.h"
-#include "includes/ThreadStructures.h"
-#include "includes/tests.h"
-#include <atomic>
-#include <string.h>
-
-void *_windowLookup(void *input)
-{
-    // TODO: start with single thread looking for all data
-
-    /*windowLookupInput *input = new windowLookupInput;
-    input->tree = tree;
-    for (int d = 0; d < DIMENSIONS; d++)
-    {
-        input->window[d][0] = 0;
-        input->window[d][1] = 1000;
-    }*/
-
-    pthread_exit(nullptr);
-}
+#include "includes/ThreadFunctions.h"
 
 int main()
 {
     BkdTree *tree = new BkdTree;
 
-    /*pthread_t threads[NUM_THREADS];
+    pthread_t threads[NUM_THREADS];
     int rc;
     int i;
 
     for (i = 0; i < NUM_THREADS; i++)
     {
-        //   cout << "main() : creating thread, " << i << endl;
-        // rc = pthread_create(&threads[i], nullptr, _threadInserter, (void *)tree);
         rc = pthread_create(&threads[i], nullptr, _threadInserter, (void *)tree);
         if (rc)
         {
@@ -43,16 +21,10 @@ int main()
             exit(-1);
         }
         pthread_join(threads[i], nullptr);
-    }*/
-    // printf("test\n");
-    _test_kdb_tree_memory_leak();
-    // for (int i = 0; i < NUM_THREADS; i++)
-    // {
-    //     _threadInserter((void *)tree);
-    // }
+    }
 
     delete tree;
-    // pthread_exit(nullptr);
+    pthread_exit(nullptr);
 }
 
 /*

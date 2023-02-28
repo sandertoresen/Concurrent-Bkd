@@ -3,7 +3,7 @@
 #include <list>
 #include <unordered_map>
 #include "Config.h"
-#include "RCUContainers.h"
+#include "ThreadFunctions.h"
 
 struct DataNode;
 struct KdbTree;
