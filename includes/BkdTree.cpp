@@ -74,18 +74,11 @@ BkdTree::~BkdTree() // Destructor
     {
         for (auto it = globalReadMap->readableTrees->begin(); it != globalReadMap->readableTrees->end();)
         {
+            // TODO OBS we don't check for active readers, make this safe with scheduler
             AtomicTreeElement *tmp = it->second;
-            if (tmp->readers.load() <= 0)
-            {
-                KdbDestroyTree(tmp->tree);
-                delete tmp;
-                it = globalReadMap->readableTrees->erase(it);
-            }
-            else
-            {
-                printf("ERROR| Active readers after deconstruction!\n");
-                exit(-1);
-            }
+            KdbDestroyTree(tmp->tree);
+            delete tmp;
+            it = globalReadMap->readableTrees->erase(it);
         }
         delete globalReadMap->readableTrees;
         delete globalReadMap;
@@ -179,7 +172,18 @@ void BkdTree::_bulkloadTree()
     { // store large tree
         largeTrees.push_back(tree);
     }
+
+    /*
+    This section is responsible for:
+    - RCU updating AtomicUnorderedMap
+        ->  removing old trees from mapCopy(pointer and iterator)
+    - Sending the removed values to scheduler so the scheduler can deal with it
+    */
+
     // TODO: use writelock if multiple trees can update this section Create new map, rcu update
+    // IDEA: have a large trees scheduler, largetrees/later structures should never be blocked,
+    // but if it schedules the changes, bulkload could be responisble for inserting them
+    //  --> this is to avoid bulkloading getting locked..
     AtomicUnorderedMapElement *mapCopy = new AtomicUnorderedMapElement;
 
     if (globalReadMap == nullptr)
@@ -192,29 +196,33 @@ void BkdTree::_bulkloadTree()
                                                    AtomicTreeElement *>(*globalReadMap->readableTrees);
     }
 
-    for (auto it = mapCopy->readableTrees->begin(); it != mapCopy->readableTrees->end();)
+    // for value in map: if value.id exists in mergeTreeList, delete it
+    for (auto it = mergeTreeList.begin(); it != mergeTreeList.end();)
     {
-        AtomicTreeElement *tmp = it->second;
-        if (tmp->deleted.load())
+        KdbTree *deleteTree = *it;
+
+        mapCopy->readableTrees->erase(deleteTree->id);
+
+        if (globalReadMap != NULL)
         {
-            if (tmp->readers.load() <= 0)
+            unordered_map<long, AtomicTreeElement *> *mapPtr = globalReadMap->readableTrees;
+
+            auto itr = mapPtr->find(deleteTree->id);
+            if (itr != mapPtr->end())
             {
-                KdbDestroyTree(tmp->tree);
-                delete tmp;
-                it = mapCopy->readableTrees->erase(it);
+                AtomicTreeElement *treeContainer = itr->second;
+                treeContainer->deleted.store(true);
             }
             else
             {
-                // Active readers, don't delete
-                ++it;
+                // OBS didnt find tree to delete??
+                printf("ERROR DIDN'T FIND TREE TO DELETE SHOULDNT BE POSSIBLE\n");
+                exit(-1);
             }
         }
-        else
-        {
-            ++it;
-        }
-    }
 
+        it = mergeTreeList.erase(it);
+    }
     AtomicTreeElement *treeContainer = new AtomicTreeElement;
     treeContainer->tree = tree;
     treeContainer->treeId = tree->id;
@@ -224,39 +232,16 @@ void BkdTree::_bulkloadTree()
     globalReadMap = mapCopy;
 
     if (oldMap != nullptr)
-    {
+    { // this should be safe because old readers
+        // TODO insert deletionList into oldMap so last scheduler can delete it
+
         oldMap->deleted.store(true);
-        if (oldMap->readers.load() <= 0)
-        {
-            delete oldMap->readableTrees;
-            delete oldMap;
-        }
+        // HERERER TODO: send value to scheduler!
     }
     pthread_mutex_unlock(&bulkingLock);
 
     // remove old nodes
     delete[] values;
-
-    for (std::list<KdbTree *>::iterator itr = mergeTreeList.begin(); itr != mergeTreeList.end();)
-    { // Fetch merged trees from readable trees and mark them as removed
-
-        KdbTree *tmpTree = *itr;
-        // TODO: can this access cause ADA problem? probably not as large trees never interfer with small trees..
-        unordered_map<long, AtomicTreeElement *>::iterator it = globalReadMap->readableTrees->find(tmpTree->id);
-        if (it != globalReadMap->readableTrees->end())
-        {
-            AtomicTreeElement *value = it->second;
-            value->deleted.store(true);
-            if (value->readers.load() <= 0)
-            {
-                KdbDestroyTree(value->tree);
-                value->tree = nullptr;
-            }
-        }
-        // TODO: does deleting the tree crash the iterator(?)
-
-        itr = mergeTreeList.erase(itr);
-    }
 }
 
 /*

@@ -87,9 +87,52 @@ void *_threadInserter(void *bkdTree)
     pthread_exit(nullptr);
 }
 
+/*
+struct windowLookupInput
+{
+    BkdTree *tree;
+    int window[DIMENSIONS][2];
+    list<DataNode *> results;
+};
+struct AtomicUnorderedMapElement
+{
+    atomic<int> readers = 0;
+    atomic<bool> deleted = false;
+    unordered_map<long, AtomicTreeElement *> *readableTrees;
+};
+ AtomicUnorderedMapElement *localMap = bkdTree->globalReadMap;
+    if (localMap->deleted.load() == false)
+    {
+        localMap->readers++;
+    }
+*/
 void *_windowLookup(void *input)
 {
-    // TODO: start with single thread looking for all data
+    windowLookupInput *windowIn = (windowLookupInput *)input;
+    BkdTree *bkdTree = windowIn->tree;
+
+    // get local pointer to data
+    AtomicUnorderedMapElement *localMap = bkdTree->globalReadMap;
+
+    /*
+        while we havent read all variables:
+            map->reader++ (before even fetcing localMap)
+            if map is deleted
+                if i am last reader:
+                    i delete map
+                    continue;
+                continue;
+
+            else:
+                iterate over map and read trees if not deleted
+
+
+
+    */
+
+    // first recive data
+    //  assert not deleted!
+    //  reader ++;
 
     /*windowLookupInput *input = new windowLookupInput;
     input->tree = tree;
@@ -98,6 +141,22 @@ void *_windowLookup(void *input)
         input->window[d][0] = 0;
         input->window[d][1] = 1000;
     }*/
+
+    while (true)
+    {
+        bool expectedDeleted = false;
+        bool desiredDeleted = false;
+        int expectedReaders = localMap->readers.load();
+        int desiredReaders = expectedReaders + 1;
+        if (localMap->deleted.compare_exchange_strong(expectedDeleted, desiredDeleted) && localMap->readers.compare_exchange_strong(expectedReaders, desiredReaders))
+        {
+            break;
+        }
+        // TODO: OBS om slettet, hvem skal slette struct?
+        if (localMap->deleted == true)
+            localMap = bkdTree->globalReadMap;
+        // CAS failed, retry
+    }
 
     pthread_exit(nullptr);
 }

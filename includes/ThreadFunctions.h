@@ -21,7 +21,7 @@ struct AtomicTreeElement
 {
     // readers flag
     long treeId; // id for writers to locate variable
-    atomic<int> readers = 0;
+    // atomic<int> readers = 0;
     atomic<bool> deleted = false;
     KdbTree *tree;
 };
@@ -35,4 +35,5 @@ struct AtomicUnorderedMapElement
 
 void *_threadInserter(void *bkdTree);
 
+void *_windowLookup(void *input);
 #endif

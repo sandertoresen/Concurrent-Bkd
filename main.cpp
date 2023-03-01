@@ -67,6 +67,9 @@ IDEAS:
 -   use Type cordinates[DIMENSIONS]
 
 
+
+FILL: considered having the last reader delete the struct, but to keep reader performance consistent, this task was assigned to the scheduler
+
 */
 
 /*for (int i = 0; i < numNodes; i++)
