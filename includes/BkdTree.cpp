@@ -232,11 +232,31 @@ void BkdTree::_bulkloadTree()
     globalReadMap = mapCopy;
 
     if (oldMap != nullptr)
-    { // this should be safe because old readers
-        // TODO insert deletionList into oldMap so last scheduler can delete it
-
+    {
         oldMap->deleted.store(true);
-        // HERERER TODO: send value to scheduler!
+        while (true)
+        {
+            int index = -1;
+            for (int i = 0; i < SCHEDULER_MAP_ARRAY_SIZE; i++)
+            {
+                AtomicUnorderedMapElement *ptr = schedulerDeletedMaps[i].load();
+                if (ptr == nullptr)
+                {
+                    index = i;
+                    break;
+                }
+            }
+            AtomicUnorderedMapElement *expected = nullptr;
+            if (index != -1 && schedulerDeletedMaps[index].compare_exchange_strong(expected, oldMap))
+            {
+                break;
+            }
+            else if (index == -1)
+            {
+                printf("ERROR ARRAY IS FULL BECAUSE OF LACK OF SCHEDULED!\n\n\n");
+                exit(-1);
+            }
+        }
     }
     pthread_mutex_unlock(&bulkingLock);
 

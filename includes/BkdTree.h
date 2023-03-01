@@ -42,8 +42,12 @@ public:
     atomic<long> treeId = 0;
 
     // read values
+
     AtomicUnorderedMapElement *globalReadMap = nullptr;
     pthread_mutex_t globalReadMapWriteLock;
+
+    // TODO assert this never gets full..
+    atomic<AtomicUnorderedMapElement *> schedulerDeletedMaps[MAX_BULKLOAD_LEVEL];
 };
 
 // have thread functions which just encapsulates BkdTree calls(?)
