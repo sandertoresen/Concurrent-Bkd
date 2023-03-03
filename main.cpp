@@ -1,24 +1,47 @@
 #include <iostream>
 // #include "includes/tests.h"
-#include "includes/Config.h"
-#include "includes/BkdTree.h"
-#include "includes/ThreadFunctions.h"
+#include "src/headers/Config.h"
+#include "src/headers/BkdTree.h"
+#include "src/headers/ThreadFunctions.h"
 
 int main()
 {
     BkdTree *tree = new BkdTree;
 
-    pthread_t threads[NUM_THREADS];
+    pthread_t threads[NUM_THREADS + 8];
     int rc;
     int i;
 
-    for (i = 0; i < NUM_THREADS; i++)
+    for (i = 0; i < NUM_THREADS + 8; i++)
     {
         rc = pthread_create(&threads[i], nullptr, _threadInserter, (void *)tree);
         if (rc)
         {
             cout << "Error:unable to create thread," << rc << endl;
             exit(-1);
+        }
+
+        if (i && i % 8 == 0)
+        {
+            i++;
+            windowLookupInput *input = new windowLookupInput;
+            input->tree = tree;
+            input->window[0][0] = 0;
+            input->window[0][1] = 1000;
+            input->window[1][0] = 0;
+            input->window[1][1] = 1000;
+
+            rc = pthread_create(&threads[i], nullptr, _windowLookup, (void *)input);
+            if (rc)
+            {
+                cout << "Error:unable to create thread," << rc << endl;
+                exit(-1);
+            }
+            pthread_join(threads[i], nullptr);
+
+            printf("retrived %d entries \n", input->results.size());
+            input->results.clear();
+            delete input;
         }
         pthread_join(threads[i], nullptr);
     }
@@ -62,6 +85,9 @@ Discussion/fill
     -> test with generic example and with BkdTree implementation
 
 // FILL: use struct to don't point direcly at list, can then iterate over without having issues of data changing(?) isj
+
+FILL: test how much overhead is created by spawning thread and thereby how many inserts each thread should perform to be worth spawning
+    -> this could be decided by the scheduler(?)
 
 IDEAS:
 -   use Type cordinates[DIMENSIONS]

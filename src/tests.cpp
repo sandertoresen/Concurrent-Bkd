@@ -1,10 +1,10 @@
 #include <string.h>
 #include <iostream>
 #include <algorithm>
-#include "tests.h"
-#include "KdbTree.h"
-#include "MemoryStructures.h"
-#include "MockAPI.h"
+#include "headers/tests.h"
+#include "headers/KdbTree.h"
+#include "headers/MemoryStructures.h"
+#include "headers/MockAPI.h"
 
 class dataNodeCMP
 {

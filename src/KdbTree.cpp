@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string.h>
 #include <list>
-#include "Config.h"
-#include "KdbTree.h"
+#include "headers/Config.h"
+#include "headers/KdbTree.h"
 
 void __printKdbBranch(KdbBranch *branch)
 {

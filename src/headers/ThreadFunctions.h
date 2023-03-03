@@ -11,8 +11,8 @@ class BkdTree;
 struct windowLookupInput
 {
     BkdTree *tree;
-    int window[DIMENSIONS][2];
-    list<DataNode *> results;
+    float window[DIMENSIONS][2];
+    list<DataNode> results;
 };
 
 class KdbTree;

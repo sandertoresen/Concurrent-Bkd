@@ -1,11 +1,11 @@
 #include <iostream>
 #include <list>
 #include <string.h>
-#include "Config.h"
-#include "BkdTree.h"
-#include "MockAPI.h"
-#include "ThreadFunctions.h"
-#include "BkdTree.h"
+#include "headers/Config.h"
+#include "headers/BkdTree.h"
+#include "headers/MockAPI.h"
+#include "headers/ThreadFunctions.h"
+#include "headers/KdbTree.h"
 // Thread should spin and fetch datapoints from an API until it ThreadDataNodeBuffer is full
 // Then atomically insert it into BkdTree
 // if Global is full, thread is responsible for creating new global memory buffer
@@ -78,7 +78,7 @@ void *_threadInserter(void *bkdTree)
         pthread_exit(nullptr);
     }
 
-    printf("Start bulkload\n");
+    printf("-----------Start bulkload\n");
     // clear tree->globalMemory and globalDisk
     // put old globalMemory and globalDisk into Read variable untill the data has been inserted (RCU)
 
@@ -87,76 +87,25 @@ void *_threadInserter(void *bkdTree)
     pthread_exit(nullptr);
 }
 
-/*
-struct windowLookupInput
-{
-    BkdTree *tree;
-    int window[DIMENSIONS][2];
-    list<DataNode *> results;
-};
-struct AtomicUnorderedMapElement
-{
-    atomic<int> readers = 0;
-    atomic<bool> deleted = false;
-    unordered_map<long, AtomicTreeElement *> *readableTrees;
-};
- AtomicUnorderedMapElement *localMap = bkdTree->globalReadMap;
-    if (localMap->deleted.load() == false)
-    {
-        localMap->readers++;
-    }
-*/
 void *_windowLookup(void *input)
 {
     windowLookupInput *windowIn = (windowLookupInput *)input;
     BkdTree *bkdTree = windowIn->tree;
+    if (bkdTree->globalReadMap == nullptr)
+    {
+        pthread_exit(nullptr);
+    }
 
     // get local pointer to data
     AtomicUnorderedMapElement *localMap = bkdTree->globalReadMap;
 
-    /*
-        while we havent read all variables:
-            map->reader++ (before even fetcing localMap)
-            if map is deleted
-                if i am last reader:
-                    i delete map
-                    continue;
-                continue;
-
-            else:
-                iterate over map and read trees if not deleted
-
-
-
-    */
-
-    // first recive data
-    //  assert not deleted!
-    //  reader ++;
-
-    /*windowLookupInput *input = new windowLookupInput;
-    input->tree = tree;
-    for (int d = 0; d < DIMENSIONS; d++)
+    localMap->readers++;
+    for (auto it = localMap->readableTrees->begin(); it != localMap->readableTrees->end(); it++)
     {
-        input->window[d][0] = 0;
-        input->window[d][1] = 1000;
-    }*/
-
-    while (true)
-    {
-        bool expectedDeleted = false;
-        bool desiredDeleted = false;
-        int expectedReaders = localMap->readers.load();
-        int desiredReaders = expectedReaders + 1;
-        if (localMap->deleted.compare_exchange_strong(expectedDeleted, desiredDeleted) && localMap->readers.compare_exchange_strong(expectedReaders, desiredReaders))
-        {
-            break;
-        }
-        // TODO: OBS om slettet, hvem skal slette struct?
-        if (localMap->deleted == true)
-            localMap = bkdTree->globalReadMap;
-        // CAS failed, retry
+        AtomicTreeElement *tmp = it->second;
+        KdbTreeRangeSearch(tmp->tree, windowIn->window, windowIn->results);
     }
 
+    localMap->readers--;
     pthread_exit(nullptr);
 }

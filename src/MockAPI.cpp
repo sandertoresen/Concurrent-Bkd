@@ -1,9 +1,9 @@
 #include <algorithm>
 #include <string.h>
 #include <iostream>
-#include "Config.h"
-#include "MockAPI.h"
-#include "MemoryStructures.h"
+#include "headers/Config.h"
+#include "headers/MockAPI.h"
+#include "headers/MemoryStructures.h"
 
 class dataNodeCMP
 {

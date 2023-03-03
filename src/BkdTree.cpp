@@ -2,11 +2,11 @@
 #include <list>
 #include <string.h>
 #include <algorithm>
-#include "Config.h"
-#include "BkdTree.h"
-#include "KdbTree.h"
-#include "MockAPI.h"
-#include "ThreadFunctions.h"
+#include "headers/Config.h"
+#include "headers/BkdTree.h"
+#include "headers/KdbTree.h"
+#include "headers/MockAPI.h"
+#include "headers/ThreadFunctions.h"
 
 class dataNodeCMP
 {
@@ -37,6 +37,8 @@ BkdTree::BkdTree() // default constructor
 
     fill_n(globalChunkReady, GLOBAL_B_CHUNK_SIZE, false);
     fill_n(globalWriteTrees, MAX_BULKLOAD_LEVEL, nullptr);
+    fill_n(schedulerDeletedMaps, MAX_BULKLOAD_LEVEL, nullptr);
+
     globalDisk = nullptr;
     globalDiskSize = 0;
 
@@ -60,15 +62,6 @@ BkdTree::~BkdTree() // Destructor
     {
         delete[] globalDisk;
     }
-    /*for (int i = 0; i < MAX_BULKLOAD_LEVEL; i++)
-    {
-        // TODO ask for globalWriteTrees lock?
-
-        if (globalWriteTrees[i] != nullptr)
-        {
-            KdbDestroyTree(globalWriteTrees[i]);
-        }
-    }*/
 
     if (globalReadMap != nullptr)
     {
