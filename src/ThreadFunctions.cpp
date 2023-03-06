@@ -1,11 +1,14 @@
 #include <iostream>
 #include <list>
 #include <string.h>
+#include <atomic>
 #include "headers/Config.h"
 #include "headers/BkdTree.h"
 #include "headers/MockAPI.h"
 #include "headers/ThreadFunctions.h"
 #include "headers/KdbTree.h"
+
+using namespace std;
 // Thread should spin and fetch datapoints from an API until it ThreadDataNodeBuffer is full
 // Then atomically insert it into BkdTree
 // if Global is full, thread is responsible for creating new global memory buffer
@@ -108,4 +111,50 @@ void *_windowLookup(void *input)
 
     localMap->readers--;
     pthread_exit(nullptr);
+}
+
+void *_MockAPIHandler(void *APIs)
+{
+    // TODO both read and writes dice roll which one
+}
+
+void *_MockAPIWrite(void *APIs)
+{
+    // TODO store avg wait time and use that as a unit instead(?)
+    MockApi *API = (MockApi *)API;
+    for (int i = 0; i < API_WRITERS; i++)
+    {
+        APIWriteNode *api = &API->APINodeArray[i];
+        int flag = api->flag.load();
+
+        if (flag == 1)
+            continue;
+
+        if (flag == -1)
+            api->wait--;
+
+        int counter = API->mockDataPtr.fetch_add(1);
+
+        api->value = &API->mockData[counter];
+        api->flag.store(1);
+        api->wait++;
+        if (api->flag.load() != 0)
+            continue;
+        // DataNode tmpVal =
+
+        // API->APINodeArray[i].value =
+        // set sent data flag
+        atomic<int> flag;
+        flag.store(1);
+
+        // set as waiting
+        atomic<int> wait = 0;
+        wait++;
+        while (flag.load() != 0)
+            pthread_yield();
+
+        wait--;
+
+        // APIArray->mockData
+    }
 }

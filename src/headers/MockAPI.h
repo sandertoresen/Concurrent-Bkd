@@ -1,26 +1,43 @@
-#ifndef MOCK_API_H
-#define MOCK_API_H
+#ifndef MOCK_API_THREAD_H
+#define MOCK_API_THREAD_H
+#include <atomic>
 #include "Config.h"
 #include "MemoryStructures.h"
+
+struct APIWriteNode
+{
+    atomic<int> flag;
+    atomic<int> *wait;
+    DataNode *value;
+};
+
+struct AverageRun
+{
+    int index = 0;
+    bool full = false;
+    int size = 5;
+    float runs[50];
+    float average = 0;
+};
+
+void __calculate_average(AverageRun *avg, float newTime);
 
 class MockApi
 {
 public:
     MockApi();
-    MockApi(int valuesPerThread);
+    MockApi(char *FILE);
+    MockApi(int mockSize);
     ~MockApi();
 
-    DataNode *fetchData(int threadNum);
-    DataNode *fetchRandom(DataNode *node);
-    void insertData(DataNode *data, int size);
-
-    // private:
     DataNode *mockData = nullptr;
-    int dataPerThread;
-    int threadCounter[NUM_THREADS];
+    atomic<int> mockDataPtr = 0;
+
+    APIWriteNode APINodeArray[API_WRITERS];
 
     int generateMockData();
     int loadMockData(char *FILE);
-};
 
+    DataNode *fetchRandom(DataNode *node);
+};
 #endif

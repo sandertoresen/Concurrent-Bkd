@@ -89,6 +89,9 @@ Discussion/fill
 FILL: test how much overhead is created by spawning thread and thereby how many inserts each thread should perform to be worth spawning
     -> this could be decided by the scheduler(?)
 
+FILL: a sellingpoint in the original BKD tree was the low storage overhead, due to beeing a more complex structure, the concurrent version adds more overhead compared to the original solution
+
+FILL: the implementation could be more efficiend for example all the sorting of every dimension, using a more efficient bulking strategy,
 IDEAS:
 -   use Type cordinates[DIMENSIONS]
 

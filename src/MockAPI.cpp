@@ -5,21 +5,6 @@
 #include "headers/MockAPI.h"
 #include "headers/MemoryStructures.h"
 
-class dataNodeCMP
-{
-    int dimension;
-
-public:
-    dataNodeCMP(int dim) : dimension(dim) {}
-
-    // This operator overloading enables calling
-    // operator function () on objects of increment
-    bool operator()(DataNode &a, DataNode &b)
-    {
-        return (bool)(a.cordinates[dimension] < b.cordinates[dimension]);
-    }
-};
-
 inline void __randomLocation(char *location)
 {
     for (int i = 0; i < CHARACTER_LIMIT - 1; i++)
@@ -34,37 +19,21 @@ inline float __randomFloat(float range)
     return static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / range));
 }
 
-MockApi::MockApi(int valuesPerThread)
+MockApi::MockApi::MockApi()
+{
+}
+
+MockApi::MockApi(int mockSize)
 {
 
-    dataPerThread = valuesPerThread;
-    mockData = new DataNode[dataPerThread * NUM_THREADS];
-    fill_n(threadCounter, NUM_THREADS, 0);
+    mockData = new DataNode[mockSize];
 
-    for (int i = 0; i < dataPerThread * NUM_THREADS; i++)
+    for (int i = 0; i < mockSize; i++)
     {
         mockData[i].cordinates[0] = __randomFloat(1000);
         mockData[i].cordinates[1] = __randomFloat(1000);
         __randomLocation(mockData[i].location);
     }
-
-    for (int i = 0; i < dataPerThread; i++)
-    {
-        printf("(%f,%f):%s\n", mockData[i].cordinates[0], mockData[i].cordinates[1], mockData[i].location);
-    }
-}
-
-MockApi::MockApi()
-{
-    fill_n(threadCounter, NUM_THREADS, 0);
-}
-
-DataNode *MockApi::fetchData(int threadNum)
-{
-    if (threadCounter[threadNum] >= dataPerThread)
-        return nullptr;
-
-    return &mockData[threadCounter[threadNum]++];
 }
 
 DataNode *MockApi::fetchRandom(DataNode *node)
@@ -81,5 +50,34 @@ MockApi::~MockApi()
     if (mockData != nullptr)
     {
         delete[] mockData;
+    }
+}
+
+void __calculate_average(AverageRun *avg, float newTime)
+{
+    if (!avg->full)
+    {
+        avg->runs[avg->index++] = newTime;
+        avg->average = 0;
+        for (int i = 0; i < avg->index; i++)
+        {
+            avg->average += avg->runs[i] / avg->index;
+        }
+
+        if (avg->index == 10)
+        {
+            avg->full = true;
+        }
+    }
+
+    else
+    {
+        int lastVal = (avg->index - 1) % 10;
+
+        avg->average -= avg->average - (avg->runs[lastVal] / 10);
+        // new first val
+        avg->runs[lastVal] = newTime;
+        avg->index = lastVal;
+        avg->average += avg->average + (avg->runs[lastVal] / 10);
     }
 }

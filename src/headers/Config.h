@@ -20,4 +20,7 @@
 
 #define NUM_THREADS 128
 
+// API
+#define API_WRITERS 1
+
 #endif
