@@ -4,20 +4,19 @@
 #include "Config.h"
 #include "MemoryStructures.h"
 
-struct APIWriteNode
-{
-    atomic<int> flag;
-    atomic<int> *wait;
-    DataNode *value;
-};
-
 struct AverageRun
 {
     int index = 0;
     bool full = false;
-    int size = 5;
-    float runs[50];
+    float runs[AVG_POOL];
     float average = 0;
+};
+
+struct APIWriteNode
+{
+    atomic<int> containsDataFlag;
+    atomic<int> *wait;
+    DataNode value;
 };
 
 void __calculate_average(AverageRun *avg, float newTime);

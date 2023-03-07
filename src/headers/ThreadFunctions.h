@@ -8,7 +8,13 @@ using namespace std;
 
 class BkdTree;
 
-struct windowLookupInput
+struct InsertInput
+{
+    BkdTree *tree;
+    list<int> indexes;
+};
+
+struct WindowLookupInput
 {
     BkdTree *tree;
     float window[DIMENSIONS][2];
@@ -34,6 +40,8 @@ struct AtomicUnorderedMapElement
 };
 
 void *_threadInserter(void *bkdTree);
+
+void *_threadInserterApi(InsertInput *input);
 
 void *_windowLookup(void *input);
 #endif

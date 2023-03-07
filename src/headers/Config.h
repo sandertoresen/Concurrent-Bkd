@@ -23,4 +23,6 @@
 // API
 #define API_WRITERS 1
 
+#define AVG_POOL 5
+
 #endif

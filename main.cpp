@@ -24,7 +24,7 @@ int main()
         if (i && i % 8 == 0)
         {
             i++;
-            windowLookupInput *input = new windowLookupInput;
+            WindowLookupInput *input = new WindowLookupInput;
             input->tree = tree;
             input->window[0][0] = 0;
             input->window[0][1] = 1000;

@@ -64,7 +64,7 @@ void __calculate_average(AverageRun *avg, float newTime)
             avg->average += avg->runs[i] / avg->index;
         }
 
-        if (avg->index == 10)
+        if (avg->index == AVG_POOL)
         {
             avg->full = true;
         }
@@ -72,12 +72,12 @@ void __calculate_average(AverageRun *avg, float newTime)
 
     else
     {
-        int lastVal = (avg->index - 1) % 10;
+        int lastVal = (avg->index - 1) % AVG_POOL;
 
-        avg->average -= avg->average - (avg->runs[lastVal] / 10);
+        avg->average -= avg->average - (avg->runs[lastVal] / AVG_POOL);
         // new first val
         avg->runs[lastVal] = newTime;
         avg->index = lastVal;
-        avg->average += avg->average + (avg->runs[lastVal] / 10);
+        avg->average += avg->average + (avg->runs[lastVal] / AVG_POOL);
     }
 }

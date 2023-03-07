@@ -62,6 +62,12 @@ public:
    atomic<int> activeThreads;
    atomic<int> readerThreads;
    atomic<int> writeThreads;
+
+   // listen for api calls and spawn or fill new thread if neccesary
+   // if write thread has API[10] array with apis it's responsible for handling
+   // if to slow(wait to large) split array into smaller parts and spawn more threads
+
+   void listenAPICalls();
 };
 
 #endif
