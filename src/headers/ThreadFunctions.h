@@ -8,10 +8,13 @@ using namespace std;
 
 class BkdTree;
 
-struct InsertInput
+struct SchWriterThread
 {
+    pthread_t *thread;
+    atomic<bool> runThread;
     BkdTree *tree;
-    list<int> indexes;
+    atomic<APIWriteNode *> nodes[API_MAX_WRITER];
+    int usedNodes;
 };
 
 struct WindowLookupInput
@@ -41,7 +44,7 @@ struct AtomicUnorderedMapElement
 
 void *_threadInserter(void *bkdTree);
 
-void *_threadInserterApi(InsertInput *input);
+void *_threadInserterApi(SchWriterThread *input);
 
 void *_windowLookup(void *input);
 #endif

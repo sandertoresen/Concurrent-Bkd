@@ -4,6 +4,7 @@
 #include "headers/Config.h"
 #include "headers/MockAPI.h"
 #include "headers/MemoryStructures.h"
+#include "headers/scheduler.h"
 
 inline void __randomLocation(char *location)
 {
@@ -53,31 +54,64 @@ MockApi::~MockApi()
     }
 }
 
-void __calculate_average(AverageRun *avg, float newTime)
+void _MockAPIMainThread(void *mockAPI)
 {
-    if (!avg->full)
-    {
-        avg->runs[avg->index++] = newTime;
-        avg->average = 0;
-        for (int i = 0; i < avg->index; i++)
-        {
-            avg->average += avg->runs[i] / avg->index;
-        }
+    // request a given amount of write APIs
+    const int spawnAPIs = 5;
+    const int insertAPIs = 10;
 
-        if (avg->index == AVG_POOL)
-        {
-            avg->full = true;
-        }
+    for (int i = 0; i < spawnAPIs; i++)
+    {
+        _MockAPIRequestInsert(mockAPI);
     }
 
-    else
+    for (int i = 0; i < insertAPIs; i++)
     {
-        int lastVal = (avg->index - 1) % AVG_POOL;
-
-        avg->average -= avg->average - (avg->runs[lastVal] / AVG_POOL);
-        // new first val
-        avg->runs[lastVal] = newTime;
-        avg->index = lastVal;
-        avg->average += avg->average + (avg->runs[lastVal] / AVG_POOL);
+        _MockAPIWrite(mockAPI);
     }
+}
+
+void _MockAPIRequestInsert(void *mockAPI)
+{
+    MockApi *API = (MockApi *)mockAPI;
+    Scheduler *scheduler = API->scheduler;
+    APIWriteNode *apiNode = new APIWriteNode;
+    API->writers.push_back(apiNode);
+    APIWriteNode *expected = nullptr;
+    bool inserted = false;
+    while (!inserted)
+    {
+        for (int i = 0; i < API_WRITE_QUEUE_SIZE; i++)
+        {
+            if (scheduler->writeQueueAPI[i].compare_exchange_strong(expected, apiNode))
+            {
+                inserted = true;
+                break;
+            }
+        }
+    }
+}
+
+void *_MockAPIWrite(void *mockAPI)
+{
+    MockApi *API = (MockApi *)mockAPI;
+    for (auto it = API->writers.begin(); it != API->writers.end(); ++it)
+        for (int i = 0; i < API_WRITERS; i++)
+        {
+            APIWriteNode *api = *it;
+            int containsDataFlag = api->containsDataFlag.load();
+
+            if (containsDataFlag == 1 || containsDataFlag == -2)
+                continue;
+
+            if (containsDataFlag == -1)
+                api->wait--;
+
+            int counter = API->mockDataPtr.fetch_add(1);
+
+            api->value = API->mockData[counter];
+            api->containsDataFlag.store(1);
+
+            api->wait++;
+        }
 }

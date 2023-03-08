@@ -1,6 +1,7 @@
 #ifndef SCHEDULER
 #define SCHEDULER
 #include "BkdTree.h"
+#include "MockAPI.h"
 #include <atomic>
 // The scheduler should be responsible for running the whole structure
 
@@ -56,17 +57,22 @@ class Scheduler
 public:
    Scheduler();
    ~Scheduler();
-   BkdTree *BkdTree;
+   BkdTree *bkdTree;
    MockApi *API;
    int maxThreads;
    atomic<int> activeThreads;
-   atomic<int> readerThreads;
-   atomic<int> writeThreads;
 
+   list<SchWriterThread *> schWriters;
+
+   atomic<int> *waitingAPIs;
+
+   atomic<APIWriteNode *> writeQueueAPI[API_WRITE_QUEUE_SIZE];
+   void checkWriteQueue();
    // listen for api calls and spawn or fill new thread if neccesary
    // if write thread has API[10] array with apis it's responsible for handling
    // if to slow(wait to large) split array into smaller parts and spawn more threads
 
+private:
    void listenAPICalls();
 };
 

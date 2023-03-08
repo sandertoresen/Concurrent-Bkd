@@ -25,4 +25,8 @@
 
 #define AVG_POOL 5
 
+// Max APIs one writer thread will be responsible for
+#define API_MAX_WRITER 5
+#define API_WRITE_QUEUE_SIZE 10
+
 #endif

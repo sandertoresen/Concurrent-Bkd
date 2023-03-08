@@ -7,6 +7,7 @@
 #include "headers/MockAPI.h"
 #include "headers/ThreadFunctions.h"
 #include "headers/KdbTree.h"
+#include "headers/scheduler.h"
 
 using namespace std;
 // Thread should spin and fetch datapoints from an API until it ThreadDataNodeBuffer is full
@@ -96,11 +97,10 @@ void *_threadInserter(void *bkdTree)
     pthread_exit(nullptr);
 }
 
-void *_threadInserterApi(InsertInput *input)
+void *_threadInserterApi(SchWriterThread *input)
 {
-    InsertInput *in = (InsertInput *)input;
+    SchWriterThread *in = (SchWriterThread *)input;
     BkdTree *tree = in->tree;
-    list<int> indexes = in->indexes;
     DataNode threadData[THREAD_BUFFER_SIZE];
 
     int inserts = 0;
@@ -109,9 +109,15 @@ void *_threadInserterApi(InsertInput *input)
         // Scheduler needs to assign APIs to a given thread
         // MVP: thread recives list of indexes its responsible for
         // APINodeArray[index]
-        for (auto it = indexes.begin(); it != indexes.end(); ++it)
+        for (int i = 0; i < API_MAX_WRITER; i++)
         {
-            APIWriteNode *api = &tree->API->APINodeArray[*it];
+            if (in->nodes[i] == nullptr)
+            {
+                continue;
+            }
+            // TODO: assert threadsafe schedulerVSthread
+            APIWriteNode *api = in->nodes[i].load();
+
             if (api->containsDataFlag.load() == 1)
             {
                 threadData[inserts++] = api->value;
@@ -201,39 +207,4 @@ void *_windowLookup(void *input)
 
     localMap->readers--;
     pthread_exit(nullptr);
-}
-
-void *_MockAPIRequest(void *request)
-{
-    // request read or write from scheduler
-    // enter read or write state
-}
-
-void *_MockAPIHandler(void *APIs)
-{
-    // TODO both read and writes dice roll which one
-}
-
-void *_MockAPIWrite(void *APIs)
-{
-    // TODO MVP wait, later: calculate avg(?)
-    MockApi *API = (MockApi *)APIs;
-    for (int i = 0; i < API_WRITERS; i++)
-    {
-        APIWriteNode *api = &API->APINodeArray[i];
-        int containsDataFlag = api->containsDataFlag.load();
-
-        if (containsDataFlag == 1)
-            continue;
-
-        if (containsDataFlag == -1)
-            api->wait--;
-
-        int counter = API->mockDataPtr.fetch_add(1);
-
-        api->value = API->mockData[counter];
-        api->containsDataFlag.store(1);
-
-        api->wait++;
-    }
 }

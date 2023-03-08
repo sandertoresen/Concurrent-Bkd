@@ -1,12 +1,23 @@
 #include <iostream>
 // #include "includes/tests.h"
+#include "src/headers/scheduler.h"
+#include "src/headers/MockAPI.h"
 #include "src/headers/Config.h"
 #include "src/headers/BkdTree.h"
 #include "src/headers/ThreadFunctions.h"
 
 int main()
 {
-    BkdTree *tree = new BkdTree;
+    Scheduler *scheduler = new Scheduler;
+    MockApi *api = new MockApi(5000);
+
+    // pthread_create:
+    _MockAPIMainThread((void *)api);
+
+    // _MockAPIRequestInsert(void *mockAPI) API.request()
+    // _MockAPIWrite(void *mockAPI) API.write()
+
+    /*BkdTree *tree = new BkdTree;
 
     pthread_t threads[NUM_THREADS + 8];
     int rc;
@@ -44,10 +55,11 @@ int main()
             delete input;
         }
         pthread_join(threads[i], nullptr);
-    }
+}
 
-    delete tree;
-    pthread_exit(nullptr);
+delete tree;
+pthread_exit(nullptr);
+*/
 }
 
 /*
