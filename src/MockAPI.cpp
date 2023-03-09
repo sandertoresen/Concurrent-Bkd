@@ -24,7 +24,7 @@ MockApi::MockApi::MockApi()
 {
 }
 
-MockApi::MockApi(int mockSize)
+MockApi::MockApi(int mockSize, Scheduler *sch)
 {
 
     mockData = new DataNode[mockSize];
@@ -35,6 +35,7 @@ MockApi::MockApi(int mockSize)
         mockData[i].cordinates[1] = __randomFloat(1000);
         __randomLocation(mockData[i].location);
     }
+    scheduler = sch;
 }
 
 DataNode *MockApi::fetchRandom(DataNode *node)
@@ -54,11 +55,11 @@ MockApi::~MockApi()
     }
 }
 
-void _MockAPIMainThread(void *mockAPI)
+void *_MockAPIMainThread(void *mockAPI)
 {
     // request a given amount of write APIs
-    const int spawnAPIs = 5;
-    const int insertAPIs = 10;
+    const int spawnAPIs = 1;
+    const int insertAPIs = THREAD_BUFFER_SIZE;
 
     for (int i = 0; i < spawnAPIs; i++)
     {
@@ -69,6 +70,8 @@ void _MockAPIMainThread(void *mockAPI)
     {
         _MockAPIWrite(mockAPI);
     }
+
+    pthread_exit(nullptr);
 }
 
 void _MockAPIRequestInsert(void *mockAPI)
@@ -85,6 +88,7 @@ void _MockAPIRequestInsert(void *mockAPI)
         {
             if (scheduler->writeQueueAPI[i].compare_exchange_strong(expected, apiNode))
             {
+                printf("inserted writeAPI!\n");
                 inserted = true;
                 break;
             }
@@ -92,26 +96,26 @@ void _MockAPIRequestInsert(void *mockAPI)
     }
 }
 
-void *_MockAPIWrite(void *mockAPI)
+void _MockAPIWrite(void *mockAPI)
 {
     MockApi *API = (MockApi *)mockAPI;
-    for (auto it = API->writers.begin(); it != API->writers.end(); ++it)
-        for (int i = 0; i < API_WRITERS; i++)
-        {
-            APIWriteNode *api = *it;
-            int containsDataFlag = api->containsDataFlag.load();
+    while (API->mockDataPtr.load() < THREAD_BUFFER_SIZE)
+    {
+        for (auto it = API->writers.begin(); it != API->writers.end(); ++it)
+            for (int i = 0; i < API_WRITERS; i++)
+            {
+                APIWriteNode *api = *it;
+                int containsDataFlag = api->containsDataFlag.load();
+                if (containsDataFlag == 1 || containsDataFlag == -2)
+                    continue;
 
-            if (containsDataFlag == 1 || containsDataFlag == -2)
-                continue;
+                int counter = API->mockDataPtr.fetch_add(1);
 
-            if (containsDataFlag == -1)
-                api->wait--;
+                printf("API:Sent data\n");
+                api->value = API->mockData[counter];
+                api->containsDataFlag.store(1);
 
-            int counter = API->mockDataPtr.fetch_add(1);
-
-            api->value = API->mockData[counter];
-            api->containsDataFlag.store(1);
-
-            api->wait++;
-        }
+                api->wait++;
+            }
+    }
 }

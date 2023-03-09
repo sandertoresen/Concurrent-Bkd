@@ -97,9 +97,9 @@ void *_threadInserter(void *bkdTree)
     pthread_exit(nullptr);
 }
 
-void *_threadInserterApi(SchWriterThread *input)
+void *_threadInserterApi(void *writeThreadInput)
 {
-    SchWriterThread *in = (SchWriterThread *)input;
+    WriterThread *in = (WriterThread *)writeThreadInput;
     BkdTree *tree = in->tree;
     DataNode threadData[THREAD_BUFFER_SIZE];
 
@@ -116,11 +116,12 @@ void *_threadInserterApi(SchWriterThread *input)
                 continue;
             }
             // TODO: assert threadsafe schedulerVSthread
-            APIWriteNode *api = in->nodes[i].load();
+            APIWriteNode *api = in->nodes[i];
 
             if (api->containsDataFlag.load() == 1)
             {
                 threadData[inserts++] = api->value;
+                printf("Recived data!\n");
                 api->containsDataFlag.store(-1);
                 api->wait--;
                 if (inserts + 1 == THREAD_BUFFER_SIZE)

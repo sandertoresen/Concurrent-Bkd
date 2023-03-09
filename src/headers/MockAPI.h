@@ -1,8 +1,11 @@
 #ifndef MOCK_API_THREAD_H
 #define MOCK_API_THREAD_H
 #include <atomic>
+#include <list>
 #include "Config.h"
 #include "MemoryStructures.h"
+
+using namespace std;
 
 struct APIWriteNode
 {
@@ -17,8 +20,8 @@ class MockApi
 {
 public:
     MockApi();
-    MockApi(char *FILE);
-    MockApi(int mockSize);
+    MockApi(char *FILE, Scheduler *sch);
+    MockApi(int mockSize, Scheduler *sch);
     ~MockApi();
 
     Scheduler *scheduler;
@@ -34,5 +37,9 @@ public:
     DataNode *fetchRandom(DataNode *node);
 };
 
-void _MockAPIMainThread(void *mockAPI);
+void *_MockAPIMainThread(void *mockAPI);
+
+void _MockAPIRequestInsert(void *mockAPI);
+
+void _MockAPIWrite(void *mockAPI);
 #endif

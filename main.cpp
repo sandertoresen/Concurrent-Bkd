@@ -8,11 +8,28 @@
 
 int main()
 {
+    pthread_t threads[2];
     Scheduler *scheduler = new Scheduler;
-    MockApi *api = new MockApi(5000);
+    MockApi *api = new MockApi(5000, scheduler);
 
     // pthread_create:
-    _MockAPIMainThread((void *)api);
+    for (int i = 0; i < 2; i++)
+    {
+        if (i == 0)
+        {
+            pthread_create(&threads[0], nullptr, _MockAPIMainThread, (void *)api);
+        }
+        if (i == 1)
+        {
+            pthread_create(&threads[1], nullptr, _schedulerMainThread, (void *)scheduler);
+        }
+    }
+
+    for (int i = 0; i < 2; i++)
+    {
+        pthread_join(threads[i], nullptr);
+    }
+    printf("threads exited!\n");
 
     // _MockAPIRequestInsert(void *mockAPI) API.request()
     // _MockAPIWrite(void *mockAPI) API.write()
@@ -63,6 +80,15 @@ pthread_exit(nullptr);
 }
 
 /*
+IDEA:
+simmulate data by watching how ofthen each thread inserts data blocks!
+    -> slipper da og bruke MockAPI thread som sakker ned løsningen og krever mer synkronisering!
+    -> MockAPI responsible for:
+        - setting random timeout between inserts
+        - supplying data read by threads
+
+
+
 Todo:
 - How does thread manager work with Read/Write?
 -   -> runs by setting the test workload in MockAPI
