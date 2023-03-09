@@ -2,6 +2,7 @@
 #define SCHEDULER
 #include <atomic>
 #include <pthread.h>
+#include "ThreadFunctions.h"
 #include "BkdTree.h"
 #include "MockAPI.h"
 // The scheduler should be responsible for running the whole structure
@@ -53,15 +54,6 @@ Need a mechanism for knowing if the current readers/writers is enough to conquer
 Scheduler is responsible for assigning spesific APIs to spesific threads..
 */
 
-struct WriterThread
-{
-   pthread_t thread;
-   atomic<bool> runThread = true;
-   BkdTree *tree;
-   APIWriteNode *nodes[API_MAX_WRITER];
-   int numAPIs;
-};
-
 class Scheduler
 {
 public:
@@ -72,18 +64,7 @@ public:
    int maxThreads;
    atomic<int> activeThreads;
 
-   list<WriterThread *> schedulerWriters;
-
-   atomic<int> *waitingAPIs;
-
-   atomic<APIWriteNode *> writeQueueAPI[API_WRITE_QUEUE_SIZE];
-   void checkWriteQueue();
-   // listen for api calls and spawn or fill new thread if neccesary
-   // if write thread has API[10] array with apis it's responsible for handling
-   // if to slow(wait to large) split array into smaller parts and spawn more threads
-
-private:
-   void listenAPICalls();
+   list<WriterThread *> writers;
 };
 
 void *_schedulerMainThread(void *scheduler);

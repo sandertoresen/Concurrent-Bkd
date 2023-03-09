@@ -1,12 +1,15 @@
 #ifndef THREAD_STRUCTURES_H
 #define THREAD_STRUCTURES_H
-#include "MemoryStructures.h"
-#include <list>
 #include <atomic>
+#include <list>
+#include <pthread.h>
 #include <unordered_map>
+#include "MemoryStructures.h"
+
 using namespace std;
 
 class BkdTree;
+class KdbTree;
 
 struct WindowLookupInput
 {
@@ -15,7 +18,12 @@ struct WindowLookupInput
     list<DataNode> results;
 };
 
-class KdbTree;
+struct WriterThread
+{
+    pthread_t thread;
+    BkdTree *tree;
+    atomic<int> flag;
+};
 
 struct AtomicTreeElement
 {
@@ -34,8 +42,6 @@ struct AtomicUnorderedMapElement
 };
 
 void *_threadInserter(void *bkdTree);
-
-void *_threadInserterApi(void *writeThreadInput);
 
 void *_windowLookup(void *input);
 #endif

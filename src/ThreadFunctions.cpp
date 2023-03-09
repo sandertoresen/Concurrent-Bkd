@@ -27,9 +27,6 @@ void *_threadInserter(void *bkdTree)
 
     for (int i = 0; i < THREAD_BUFFER_SIZE; i++)
     {
-        // threadData[i].cordinates[0] = (float)i;
-        // threadData[i].cordinates[1] = (float)i;
-        // strcpy(threadData[i].location, "Input");
         tree->API->fetchRandom(&threadData[i]);
     }
     int inserts = 0;
@@ -97,96 +94,6 @@ void *_threadInserter(void *bkdTree)
     pthread_exit(nullptr);
 }
 
-void *_threadInserterApi(void *writeThreadInput)
-{
-    WriterThread *in = (WriterThread *)writeThreadInput;
-    BkdTree *tree = in->tree;
-    DataNode threadData[THREAD_BUFFER_SIZE];
-
-    int inserts = 0;
-    while (inserts < THREAD_BUFFER_SIZE)
-    { // TODO: threads can recive array of datanodes
-        // Scheduler needs to assign APIs to a given thread
-        // MVP: thread recives list of indexes its responsible for
-        // APINodeArray[index]
-        for (int i = 0; i < API_MAX_WRITER; i++)
-        {
-            if (in->nodes[i] == nullptr)
-            {
-                continue;
-            }
-            // TODO: assert threadsafe schedulerVSthread
-            APIWriteNode *api = in->nodes[i];
-
-            if (api->containsDataFlag.load() == 1)
-            {
-                threadData[inserts++] = api->value;
-                printf("Recived data!\n");
-                api->containsDataFlag.store(-1);
-                api->wait--;
-                if (inserts + 1 == THREAD_BUFFER_SIZE)
-                    break;
-            }
-        }
-    }
-
-    int size, updatedSize;
-
-    while (1)
-    {
-        size = tree->globalMemorySize.load();
-        updatedSize = size + THREAD_BUFFER_SIZE;
-
-        if (size >= GLOBAL_BUFFER_SIZE)
-            continue;
-        if (tree->globalMemorySize.compare_exchange_weak(size, updatedSize))
-            break;
-    }
-
-    memcpy(&tree->globalMemory[size],
-           &threadData, sizeof(DataNode) * THREAD_BUFFER_SIZE);
-
-    printf("Size: %d Set value at chunk %d\n", size, size / THREAD_BUFFER_SIZE);
-    tree->globalChunkReady[size / THREAD_BUFFER_SIZE] = true;
-
-    // Tree now full -> handle data
-    if (updatedSize < GLOBAL_BUFFER_SIZE)
-    {
-        pthread_exit(nullptr);
-    }
-
-    bool moreWork = true;
-    while (moreWork)
-    {
-        moreWork = false;
-        for (int i = 0; i < GLOBAL_B_CHUNK_SIZE; i++)
-        {
-            moreWork += !tree->globalChunkReady[i];
-        }
-    }
-
-    if (tree->globalDisk == nullptr)
-    {
-        tree->globalDisk = tree->globalMemory;
-        tree->globalDiskSize.store(GLOBAL_BUFFER_SIZE);
-
-        fill_n(tree->globalChunkReady, GLOBAL_B_CHUNK_SIZE, false);
-
-        tree->globalMemory = new DataNode[GLOBAL_BUFFER_SIZE];
-        tree->globalMemorySize.store(0);
-        printf("Used globalDisk\n");
-
-        pthread_exit(nullptr);
-    }
-
-    printf("-----------Start bulkload\n");
-    // clear tree->globalMemory and globalDisk
-    // put old globalMemory and globalDisk into Read variable untill the data has been inserted (RCU)
-
-    tree->_bulkloadTree();
-
-    pthread_exit(nullptr);
-}
 void *_windowLookup(void *input)
 {
     WindowLookupInput *windowIn = (WindowLookupInput *)input;

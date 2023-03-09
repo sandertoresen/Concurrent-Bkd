@@ -21,7 +21,9 @@
 #define NUM_THREADS 128
 
 // API
-#define API_WRITERS 1
+#define API_DELAY_MS 0
+
+#define INITIAL_WRITERS 200
 
 #define AVG_POOL 5
 

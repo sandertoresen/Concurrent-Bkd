@@ -8,75 +8,10 @@
 
 int main()
 {
-    pthread_t threads[2];
+    pthread_t thread;
     Scheduler *scheduler = new Scheduler;
-    MockApi *api = new MockApi(5000, scheduler);
-
-    // pthread_create:
-    for (int i = 0; i < 2; i++)
-    {
-        if (i == 0)
-        {
-            pthread_create(&threads[0], nullptr, _MockAPIMainThread, (void *)api);
-        }
-        if (i == 1)
-        {
-            pthread_create(&threads[1], nullptr, _schedulerMainThread, (void *)scheduler);
-        }
-    }
-
-    for (int i = 0; i < 2; i++)
-    {
-        pthread_join(threads[i], nullptr);
-    }
-    printf("threads exited!\n");
-
-    // _MockAPIRequestInsert(void *mockAPI) API.request()
-    // _MockAPIWrite(void *mockAPI) API.write()
-
-    /*BkdTree *tree = new BkdTree;
-
-    pthread_t threads[NUM_THREADS + 8];
-    int rc;
-    int i;
-
-    for (i = 0; i < NUM_THREADS + 8; i++)
-    {
-        rc = pthread_create(&threads[i], nullptr, _threadInserter, (void *)tree);
-        if (rc)
-        {
-            cout << "Error:unable to create thread," << rc << endl;
-            exit(-1);
-        }
-
-        if (i && i % 8 == 0)
-        {
-            i++;
-            WindowLookupInput *input = new WindowLookupInput;
-            input->tree = tree;
-            input->window[0][0] = 0;
-            input->window[0][1] = 1000;
-            input->window[1][0] = 0;
-            input->window[1][1] = 1000;
-
-            rc = pthread_create(&threads[i], nullptr, _windowLookup, (void *)input);
-            if (rc)
-            {
-                cout << "Error:unable to create thread," << rc << endl;
-                exit(-1);
-            }
-            pthread_join(threads[i], nullptr);
-
-            printf("retrived %d entries \n", input->results.size());
-            input->results.clear();
-            delete input;
-        }
-        pthread_join(threads[i], nullptr);
-}
-
-delete tree;
-pthread_exit(nullptr);
-*/
+    pthread_create(&thread, nullptr, _schedulerMainThread, (void *)scheduler);
+    pthread_join(thread, nullptr);
 }
 
 /*
