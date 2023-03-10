@@ -59,12 +59,14 @@ class Scheduler
 public:
    Scheduler();
    ~Scheduler();
+   void deleteOldMaps();
    BkdTree *bkdTree;
    MockApi *API;
    int maxThreads;
    atomic<int> activeThreads;
 
-   list<WriterThread *> writers;
+   list<ScheduledThread *> writers;
+   list<ScheduledThread *> readers;
 };
 
 void *_schedulerMainThread(void *scheduler);

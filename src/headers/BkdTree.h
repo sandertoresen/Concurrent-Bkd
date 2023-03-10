@@ -47,7 +47,7 @@ public:
     pthread_mutex_t globalReadMapWriteLock;
 
     // TODO assert this never gets full..
-    atomic<AtomicUnorderedMapElement *> schedulerDeletedMaps[MAX_BULKLOAD_LEVEL];
+    atomic<AtomicUnorderedMapElement *> schedulerDeletedMaps[SCHEDULER_MAP_ARRAY_SIZE];
 };
 
 // have thread functions which just encapsulates BkdTree calls(?)

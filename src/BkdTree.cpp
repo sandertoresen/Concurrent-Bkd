@@ -37,7 +37,7 @@ BkdTree::BkdTree() // default constructor
 
     fill_n(globalChunkReady, GLOBAL_B_CHUNK_SIZE, false);
     fill_n(globalWriteTrees, MAX_BULKLOAD_LEVEL, nullptr);
-    fill_n(schedulerDeletedMaps, MAX_BULKLOAD_LEVEL, nullptr);
+    fill_n(schedulerDeletedMaps, SCHEDULER_MAP_ARRAY_SIZE, nullptr);
 
     globalDisk = nullptr;
     globalDiskSize = 0;

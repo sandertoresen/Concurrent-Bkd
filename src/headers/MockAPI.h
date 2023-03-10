@@ -4,6 +4,7 @@
 #include <list>
 #include "Config.h"
 #include "MemoryStructures.h"
+#include "ThreadFunctions.h"
 
 using namespace std;
 
@@ -29,6 +30,8 @@ public:
 
     DataNode *fetchRandom(DataNode *node);
     DataNode *selectStores(DataNode *node);
+
+    WindowQuery *fetchWindowQuery();
 };
 
 void *_MockAPIMainThread(void *mockAPI);

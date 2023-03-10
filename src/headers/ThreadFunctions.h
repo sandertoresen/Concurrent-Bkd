@@ -11,14 +11,13 @@ using namespace std;
 class BkdTree;
 class KdbTree;
 
-struct WindowLookupInput
+struct WindowQuery
 {
-    BkdTree *tree;
     float window[DIMENSIONS][2];
     list<DataNode> results;
 };
 
-struct WriterThread
+struct ScheduledThread
 {
     pthread_t thread;
     BkdTree *tree;
@@ -42,6 +41,8 @@ struct AtomicUnorderedMapElement
 };
 
 void *_threadInserter(void *bkdTree);
+
+void *_threadInserterControlled(void *writerThread);
 
 void *_windowLookup(void *input);
 #endif

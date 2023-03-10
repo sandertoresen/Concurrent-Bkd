@@ -65,6 +65,33 @@ DataNode *MockApi::selectStores(DataNode *node)
     return node;
 }
 
+WindowQuery *MockApi::fetchWindowQuery()
+{
+    WindowQuery *query = new WindowQuery;
+    for (int d = 0; d < DIMENSIONS; d++)
+    {
+        float a = 0;    //__randomFloat(1000);
+        float b = 1000; //__randomFloat(1000);
+        if (a > b)
+        {
+            query->window[d][0] = b;
+            query->window[d][1] = a;
+        }
+        else
+        {
+            query->window[d][0] = a;
+            query->window[d][1] = b;
+        }
+    }
+
+    auto start_time = std::chrono::steady_clock::now();
+    while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start_time).count() < delay)
+    {
+    }
+
+    return query;
+}
+
 MockApi::~MockApi()
 {
     if (mockData != nullptr)

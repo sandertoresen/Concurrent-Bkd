@@ -23,7 +23,8 @@
 // API
 #define API_DELAY_MS 0
 
-#define INITIAL_WRITERS 200
+#define INITIAL_WRITERS 2
+#define INITIAL_READERS 1
 
 #define AVG_POOL 5
 
