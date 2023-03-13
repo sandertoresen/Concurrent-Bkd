@@ -60,8 +60,8 @@ public:
    Scheduler();
    ~Scheduler();
    void deleteOldMaps();
+   void shutdown();
    BkdTree *bkdTree;
-   MockApi *API;
    int maxThreads;
    atomic<int> activeThreads;
 

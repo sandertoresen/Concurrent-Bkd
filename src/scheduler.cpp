@@ -15,7 +15,10 @@ Scheduler::Scheduler()
 {
     // TODO Setup
     bkdTree = new BkdTree;
-    API = new MockApi();
+}
+Scheduler::~Scheduler()
+{
+    delete bkdTree;
 }
 
 void *_schedulerMainThread(void *scheduler)
@@ -43,29 +46,13 @@ void *_schedulerMainThread(void *scheduler)
         sch->activeThreads++;
         sch->readers.push_back(thread);
     }
-
-    int runningTime = 5;
-    auto start_time = std::chrono::steady_clock::now();
     while (running)
     {
-        if (std::chrono::steady_clock::now() - start_time > std::chrono::seconds(runningTime))
+
+        if (sch->bkdTree->treeId.load() > 40)
         {
-
             printf("Got %d trees\n", sch->bkdTree->treeId.load());
-            for (auto it = sch->writers.begin(); it != sch->writers.end(); it++)
-            {
-                printf("Shut down thread\n");
-                ScheduledThread *t = *it;
-                t->flag.store(0);
-            }
-
-            for (auto it = sch->readers.begin(); it != sch->readers.end(); it++)
-            {
-                printf("Shut down thread\n");
-                ScheduledThread *t = *it;
-                t->flag.store(0);
-            }
-
+            sch->shutdown();
             break;
         }
 
@@ -115,4 +102,42 @@ void Scheduler::deleteOldMaps()
 
         bkdTree->schedulerDeletedMaps[i].store(nullptr);
     }
+}
+
+void Scheduler::shutdown()
+{
+    for (auto it = writers.begin(); it != writers.end(); it++)
+    {
+        printf("Shut down write thread\n");
+        ScheduledThread *t = *it;
+        t->flag.store(0);
+    }
+
+    for (auto it = readers.begin(); it != readers.end(); it++)
+    {
+        printf("Shut down read thread\n");
+        ScheduledThread *t = *it;
+        t->flag.store(0);
+    }
+
+    for (auto it = writers.begin(); it != writers.end();)
+    {
+        ScheduledThread *t = *it;
+        while (t->flag.load() != -1)
+        {
+        }
+        it = writers.erase(it);
+        // delete t;
+    }
+
+    for (auto it = readers.begin(); it != readers.end();)
+    {
+        ScheduledThread *t = *it;
+        while (t->flag.load() != -1)
+        {
+        }
+        it = readers.erase(it);
+        // delete t;
+    }
+    printf("threads erased!\n");
 }
