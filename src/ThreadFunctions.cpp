@@ -157,6 +157,7 @@ void *_threadInserterControlled(void *writerThread)
 
         tree->_bulkloadTree();
     }
+    thread->flag.store(-1);
     pthread_exit(nullptr);
 }
 
@@ -195,6 +196,6 @@ void *_windowLookup(void *readerThread)
 
         delete query;
     }
-
+    thread->flag.store(-1);
     pthread_exit(nullptr);
 }
