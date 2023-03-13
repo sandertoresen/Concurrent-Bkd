@@ -8,26 +8,6 @@
 #include "headers/MockAPI.h"
 #include "headers/ThreadFunctions.h"
 
-class dataNodeCMP
-{
-    int dimension;
-
-public:
-    dataNodeCMP(int dim) : dimension(dim) {}
-
-    // This operator overloading enables calling
-    // operator function () on objects of increment
-    bool operator()(DataNode &a, DataNode &b)
-    {
-        return (bool)(a.cordinates[dimension] < b.cordinates[dimension]);
-    }
-};
-
-inline long BkdTree::generateUniqueId(atomic<long> &counter)
-{
-    return counter.fetch_add(1);
-}
-
 BkdTree::BkdTree() // default constructor
 {
     printf("Constructur runs!\n");
@@ -77,6 +57,11 @@ BkdTree::~BkdTree() // Destructor
         delete globalReadMap;
     }
     delete API;
+}
+
+inline long BkdTree::generateUniqueId(atomic<long> &counter)
+{
+    return counter.fetch_add(1);
 }
 
 // pointers to take in Memory array, Disk array
