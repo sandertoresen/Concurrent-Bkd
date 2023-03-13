@@ -302,6 +302,19 @@ KdbBranch *KdbCreateBranch(DataNode *values, int numNodes, KdbTree *root, KdbBra
             DataNode tmp = values[numNodes * d + i];
 
             if (tmp.cordinates[currentDimension] == branch->treeSplit)
+            /*
+            Potential replacement:
+            { // cordinate might be left or right, need to check data and other cords     // could be added to either side, add to left if not full
+                if (leftCounter[d] < rightMiddleIndex)
+                {
+                    memcpy(&leftDataNodes[d * rightMiddleIndex + leftCounter[d]++], &values[numNodes * d + i], sizeof(DataNode));
+                }
+                // add right
+                else
+                {
+                    memcpy(&rightDataNodes[d * rightSize + rightCounter[d]++], &values[numNodes * d + i], sizeof(DataNode));
+                }
+            */
             { // cordinate might be left or right, need to check data and other cords
                 bool goneLeft = false;
                 for (int j = 0; j < rightMiddleIndex; j++)
