@@ -1,17 +1,21 @@
 #include <iostream>
-// #include "includes/tests.h"
+#include "src/headers/tests.h"
 #include "src/headers/scheduler.h"
 #include "src/headers/MockAPI.h"
 #include "src/headers/Config.h"
 #include "src/headers/BkdTree.h"
+#include "src/headers/KdbTree.h"
 #include "src/headers/ThreadFunctions.h"
 
 int main()
 {
+    // _test_kdb_tree_memory_leak();
+
     pthread_t thread;
     Scheduler *scheduler = new Scheduler;
     pthread_create(&thread, nullptr, _schedulerMainThread, (void *)scheduler);
     pthread_join(thread, nullptr);
+    delete scheduler;
 }
 
 /*

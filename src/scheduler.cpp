@@ -141,3 +141,8 @@ void Scheduler::shutdown()
     }
     printf("threads erased!\n");
 }
+
+void Scheduler::largeBulkloads()
+{
+    // TODO: include bloomfilter
+}

@@ -61,6 +61,7 @@ public:
    ~Scheduler();
    void deleteOldMaps();
    void shutdown();
+   void largeBulkloads();
    BkdTree *bkdTree;
    int maxThreads;
    atomic<int> activeThreads;
