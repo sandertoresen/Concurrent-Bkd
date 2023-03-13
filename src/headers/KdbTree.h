@@ -23,6 +23,7 @@ struct KdbTree
 {
     float treeSplit = -1;
     int size = 0;
+    int level;
     long id;
     KdbBranch *left;
     KdbBranch *right;
@@ -51,7 +52,7 @@ int _KdbBranchRemove(KdbBranch *branch, float index[DIMENSIONS]);
 
 KdbBranch *KdbCreateBranch(DataNode *values, int numNodes, KdbTree *root, KdbBranch *parent, int currentDimension);
 
-KdbTree *KdbCreateTree(DataNode *values, int numNodes, long treeId);
+KdbTree *KdbCreateTree(DataNode *values, int numNodes, long treeId, int level);
 
 void KdbDestroyTree(KdbTree *tree);
 

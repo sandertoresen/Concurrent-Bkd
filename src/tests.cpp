@@ -5,23 +5,9 @@
 #include "headers/KdbTree.h"
 #include "headers/MemoryStructures.h"
 #include "headers/MockAPI.h"
+#include "headers/BkdTree.h"
 
 using namespace std;
-
-class dataNodeCMP
-{
-    int dimension;
-
-public:
-    dataNodeCMP(int dim) : dimension(dim) {}
-
-    // This operator overloading enables calling
-    // operator function () on objects of increment
-    bool operator()(DataNode &a, DataNode &b)
-    {
-        return (bool)(a.cordinates[dimension] < b.cordinates[dimension]);
-    }
-};
 
 void _test_kdb_tree_memory_leak()
 {
@@ -49,7 +35,7 @@ void _test_kdb_tree_memory_leak()
         sort(&values[d * numNodes], &values[d * numNodes + numNodes], dataNodeCMP(d));
     }
 
-    KdbTree *tree = KdbCreateTree(values, numNodes, 42);
+    KdbTree *tree = KdbCreateTree(values, numNodes, 42, -1);
     printf("created tree!\n");
     // Fetch nodes back
     DataNode *leakTest = new DataNode[numNodes];

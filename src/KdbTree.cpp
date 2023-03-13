@@ -354,11 +354,12 @@ KdbBranch *KdbCreateBranch(DataNode *values, int numNodes, KdbTree *root, KdbBra
     return branch;
 }
 
-KdbTree *KdbCreateTree(DataNode *values, int numNodes, long treeId)
+KdbTree *KdbCreateTree(DataNode *values, int numNodes, long treeId, int level)
 {
     KdbTree *tree = new KdbTree;
     tree->size = numNodes;
     tree->id = treeId;
+    tree->level = level;
     printf("Tree|numNodes:%d\n", numNodes);
 
     int leftMiddleIndex = numNodes / 2 - !(numNodes % 2);

@@ -23,7 +23,7 @@ public:
     }
 };
 
-inline long generateUniqueId(atomic<long> &counter)
+inline long BkdTree::generateUniqueId(atomic<long> &counter)
 {
     return counter.fetch_add(1);
 }
@@ -155,7 +155,7 @@ void BkdTree::_bulkloadTree()
         std::sort(&values[d * numNodes], &values[d * numNodes + numNodes], dataNodeCMP(d));
     }
 
-    KdbTree *tree = KdbCreateTree(values, numNodes, generateUniqueId(treeId));
+    KdbTree *tree = KdbCreateTree(values, numNodes, generateUniqueId(treeId), -1);
 
     if (treeArrayLocation != -1)
     { // store normal tree
@@ -163,6 +163,7 @@ void BkdTree::_bulkloadTree()
     }
     else
     { // store large tree
+        tree->level = 1;
         largeTrees.push_back(tree);
     }
 

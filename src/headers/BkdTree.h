@@ -9,16 +9,32 @@ struct DataNode;
 struct KdbTree;
 class MockApi;
 
+class dataNodeCMP
+{
+    int dimension;
+
+public:
+    dataNodeCMP(int dim) : dimension(dim) {}
+
+    // This operator overloading enables calling
+    // operator function () on objects of increment
+    bool operator()(DataNode &a, DataNode &b)
+    {
+        return (bool)(a.cordinates[dimension] < b.cordinates[dimension]);
+    }
+};
+
 class BkdTree
 {
 public:
     BkdTree();
     ~BkdTree();
 
-    // int insert(DataNode *value);
     int insert(DataNode *values);
     void windowLookup(list<DataNode> &values, int window[DIMENSIONS][2]);
-    // int remove(float index[DIMENSIONS]);
+    void _bulkloadTree();
+    inline long generateUniqueId(atomic<long> &counter);
+
     MockApi *API;
     DataNode *globalMemory;
     atomic<int> globalMemorySize;
@@ -36,8 +52,6 @@ public:
 
     list<KdbTree *> largeTrees;
     // list<KdbTree> *globalReadTree; //list pointer for readers (RCU)
-
-    void _bulkloadTree();
 
     atomic<long> treeId = 0;
 
