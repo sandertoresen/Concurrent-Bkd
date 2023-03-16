@@ -199,3 +199,16 @@ void *_windowLookup(void *readerThread)
     thread->flag.store(-1);
     pthread_exit(nullptr);
 }
+
+void *_performLargerBulkLoad(void *scheduler)
+{
+    Scheduler *sch = (Scheduler *)scheduler;
+
+    // Check what kind of bulk loading is neccesary
+
+    // Always start with performing smallest bulkloading bossible(?)
+
+    // Include while(flag says run continue)
+
+    pthread_exit(nullptr);
+}

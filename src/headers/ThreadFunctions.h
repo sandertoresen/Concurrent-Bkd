@@ -45,4 +45,6 @@ void *_threadInserter(void *bkdTree);
 void *_threadInserterControlled(void *writerThread);
 
 void *_windowLookup(void *input);
+
+void *_performLargerBulkLoad(void *scheduler);
 #endif

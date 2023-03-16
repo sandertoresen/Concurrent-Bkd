@@ -16,13 +16,18 @@ BkdTree::BkdTree() // default constructor
     globalMemorySize = 0;
 
     fill_n(globalChunkReady, GLOBAL_B_CHUNK_SIZE, false);
-    fill_n(globalWriteTrees, MAX_BULKLOAD_LEVEL, nullptr);
+    fill_n(globalWriteSmallTrees, MAX_BULKLOAD_LEVEL, nullptr);
     fill_n(schedulerDeletedMaps, SCHEDULER_MAP_ARRAY_SIZE, nullptr);
 
     globalDisk = nullptr;
     globalDiskSize = 0;
 
-    if (pthread_mutex_init(&bulkingLock, nullptr) != 0)
+    if (pthread_mutex_init(&smallBulkingLock, nullptr) != 0)
+    {
+        printf("\n mutex init has failed\n");
+        exit(0);
+    }
+    if (pthread_mutex_init(&globalReadMapWriteLock, nullptr) != 0)
     {
         printf("\n mutex init has failed\n");
         exit(0);
@@ -59,7 +64,7 @@ BkdTree::~BkdTree() // Destructor
     delete API;
 }
 
-inline long BkdTree::generateUniqueId(atomic<long> &counter)
+inline long generateUniqueId(atomic<long> &counter)
 {
     return counter.fetch_add(1);
 }
@@ -82,7 +87,7 @@ void BkdTree::_bulkloadTree()
 
     int numNodes = localMemorySize + localDiskSize;
 
-    pthread_mutex_lock(&bulkingLock);
+    pthread_mutex_lock(&smallBulkingLock);
 
     list<KdbTree *> mergeTreeList;
     int treeArrayLocation = 0;
@@ -91,7 +96,7 @@ void BkdTree::_bulkloadTree()
     {
         int endTree = 0;
 
-        if (globalWriteTrees[currentTree] != nullptr)
+        if (globalWriteSmallTrees[currentTree] != nullptr)
         {
             if (currentTree + 1 != MAX_BULKLOAD_LEVEL)
                 continue;
@@ -106,9 +111,9 @@ void BkdTree::_bulkloadTree()
 
         for (int previousTree = 0; previousTree < endTree; previousTree++)
         {
-            mergeTreeList.push_back(globalWriteTrees[previousTree]);
-            numNodes += globalWriteTrees[previousTree]->size;
-            globalWriteTrees[previousTree] = nullptr;
+            mergeTreeList.push_back(globalWriteSmallTrees[previousTree]);
+            numNodes += globalWriteSmallTrees[previousTree]->size;
+            globalWriteSmallTrees[previousTree] = nullptr;
 
             if (treeArrayLocation != -1)
                 treeArrayLocation = currentTree;
@@ -144,12 +149,12 @@ void BkdTree::_bulkloadTree()
 
     if (treeArrayLocation != -1)
     { // store normal tree
-        globalWriteTrees[treeArrayLocation] = tree;
+        globalWriteSmallTrees[treeArrayLocation] = tree;
     }
     else
     { // store large tree
         tree->level = 1;
-        largeTrees.push_back(tree);
+        globalWriteMediumTrees.push_back(tree);
     }
 
     /*
@@ -163,8 +168,10 @@ void BkdTree::_bulkloadTree()
     // IDEA: have a large trees scheduler, largetrees/later structures should never be blocked,
     // but if it schedules the changes, bulkload could be responisble for inserting them
     //  --> this is to avoid bulkloading getting locked..
+
     AtomicUnorderedMapElement *mapCopy = new AtomicUnorderedMapElement;
 
+    pthread_mutex_lock(&globalReadMapWriteLock);
     if (globalReadMap == nullptr)
     {
         mapCopy->readableTrees = new unordered_map<long, AtomicTreeElement *>();
@@ -209,6 +216,7 @@ void BkdTree::_bulkloadTree()
 
     AtomicUnorderedMapElement *oldMap = globalReadMap;
     globalReadMap = mapCopy;
+    pthread_mutex_unlock(&globalReadMapWriteLock);
 
     if (oldMap != nullptr)
     {
@@ -237,7 +245,7 @@ void BkdTree::_bulkloadTree()
             }
         }
     }
-    pthread_mutex_unlock(&bulkingLock);
+    pthread_mutex_unlock(&smallBulkingLock);
 
     // remove old nodes
     delete[] values;

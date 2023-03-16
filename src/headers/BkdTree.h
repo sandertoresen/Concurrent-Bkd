@@ -23,6 +23,7 @@ public:
         return (bool)(a.cordinates[dimension] < b.cordinates[dimension]);
     }
 };
+inline long generateUniqueId(atomic<long> &counter);
 
 class BkdTree
 {
@@ -33,7 +34,6 @@ public:
     int insert(DataNode *values);
     void windowLookup(list<DataNode> &values, int window[DIMENSIONS][2]);
     void _bulkloadTree();
-    inline long generateUniqueId(atomic<long> &counter);
 
     MockApi *API;
     DataNode *globalMemory;
@@ -46,12 +46,13 @@ public:
 
     // must assert no other readers have started bulkloading in the meantime, might require lock
 
-    pthread_mutex_t bulkingLock;
+    pthread_mutex_t smallBulkingLock;
 
-    KdbTree *globalWriteTrees[MAX_BULKLOAD_LEVEL];
+    KdbTree *globalWriteSmallTrees[MAX_BULKLOAD_LEVEL];
 
-    list<KdbTree *> largeTrees;
-    // list<KdbTree> *globalReadTree; //list pointer for readers (RCU)
+    list<KdbTree *> globalWriteMediumTrees;
+
+    list<KdbTree *> globalWriteLargeTrees;
 
     atomic<long> treeId = 0;
 
