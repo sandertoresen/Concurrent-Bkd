@@ -19,6 +19,15 @@ int main()
 }
 
 /*
+
+FILL/EXPLAIN:
+    In the original bkd-tree,
+    the oldest nodes are always in the bottom of the tree, but as all trees needs to be read
+    during a window search, there is no point in having them sorted. By not having them sorted the task
+    of bulkloading multiple trees are also made easier without needing to keep tree order in mind.
+    Consider if mediumTree slot is filled with 4 trees which could then be turned into 2 larger trees and then bulkloaded again.
+    Instead of these trees beeing bulkloaded twice to keep the original order(explain how with practical example) we could just bulkload
+    all 4 together even though this could make it so younger data have a larger tree.
 IDEA:
 simmulate data by watching how ofthen each thread inserts data blocks!
     -> slipper da og bruke MockAPI thread som sakker ned løsningen og krever mer synkronisering!

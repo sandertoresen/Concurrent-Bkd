@@ -202,9 +202,40 @@ void *_windowLookup(void *readerThread)
 
 void *_performLargerBulkLoad(void *scheduler)
 {
+    /*
+    Tankegang:
+    mediumtrees er en delt liste, den vil alltid kun inneholde trær av en gitt størrelse
+    largeTrees er bygd av mediumTrees og vil være thread safe så lenge den kun jobbes på av en tråd
+
+    medium trees burde alltid bygges opp av en gitt størrelse for at man enkelt skal kunne vite hvor stor trærne er(?)
+
+    */
     Scheduler *sch = (Scheduler *)scheduler;
 
+    // always perform smallest bulkloadings first:
+
+    // for element in list and while run flag == True
+    /*
+    int maxLevel = bkdTree->maxLevel.load();
+    while(runningFlag){
+        for(i in maxLevel){
+            if(!runningFlag)
+                break;
+            sch->largeBulkloads(i);
+        }
+    }
+    */
+
+    /*
+    large list brukes kun av denne threaden, trenger ikke lås
+    1. sjekk etter minste tree level med 2 noder(?)
+    2. bulkload
+
+    */
+    list<KdbTree *> large = sch->bkdTree->globalWriteLargeTrees;
     // Check what kind of bulk loading is neccesary
+
+    // look for large trees with atleast 2 levels
 
     // Always start with performing smallest bulkloading bossible(?)
 

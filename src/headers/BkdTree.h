@@ -50,6 +50,7 @@ public:
 
     KdbTree *globalWriteSmallTrees[MAX_BULKLOAD_LEVEL];
 
+    pthread_mutex_t mediumWriteTreesLock;
     list<KdbTree *> globalWriteMediumTrees;
 
     list<KdbTree *> globalWriteLargeTrees;

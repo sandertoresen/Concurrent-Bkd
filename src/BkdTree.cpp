@@ -32,6 +32,11 @@ BkdTree::BkdTree() // default constructor
         printf("\n mutex init has failed\n");
         exit(0);
     }
+    if (pthread_mutex_init(&mediumWriteTreesLock, nullptr) != 0)
+    {
+        printf("\n mutex init has failed\n");
+        exit(0);
+    }
 }
 
 BkdTree::~BkdTree() // Destructor
@@ -145,7 +150,7 @@ void BkdTree::_bulkloadTree()
         std::sort(&values[d * numNodes], &values[d * numNodes + numNodes], dataNodeCMP(d));
     }
 
-    KdbTree *tree = KdbCreateTree(values, numNodes, generateUniqueId(treeId), -1);
+    KdbTree *tree = KdbCreateTree(values, numNodes, generateUniqueId(treeId), 0);
 
     if (treeArrayLocation != -1)
     { // store normal tree

@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <cmath>
 #include <pthread.h>
 #include <iostream>
 #include <unordered_map>
@@ -145,18 +146,74 @@ void Scheduler::shutdown()
 
 void Scheduler::largeBulkloads(int selectedLevel)
 {
+    // TODO: include numTrees to know how many trees of selected level should be bulkloaded
+
     // use tree->level to combine trees.
     int numNodes = 0;
     list<KdbTree *> mergeTreeList;
-    for (auto it = bkdTree->globalWriteMediumTrees.begin(); it != bkdTree->globalWriteMediumTrees.end();)
+    if (selectedLevel == 0)
     {
-        KdbTree *tmp = *it;
-        if (tmp->level == selectedLevel)
+        int size = bkdTree->globalWriteMediumTrees.size();
+        int largestPowerOf2 = pow(2, floor(log2(size))); // largest power of 2 less than or equal to size
+
+        int numNodesAdded = 0;
+        for (auto it = bkdTree->globalWriteMediumTrees.begin(); it != bkdTree->globalWriteMediumTrees.end() && numNodesAdded < largestPowerOf2; it++)
         {
+            KdbTree *tmp = *it;
             mergeTreeList.push_back(tmp);
-            numNodes += tmp->size;
+            numNodesAdded++;
+            numNodes = tmp->size;
         }
     }
+    else
+    {
+        int treeCount = 0;
+        for (auto it = bkdTree->globalWriteLargeTrees.begin(); it != bkdTree->globalWriteLargeTrees.end(); it++)
+        {
+            KdbTree *tmp = *it;
+            if (tmp->level == selectedLevel)
+            {
+                mergeTreeList.push_back(tmp);
+                numNodes += tmp->size;
+                treeCount++;
+            }
+        }
+        int size = mergeTreeList.size();
+        int largestPowerOf2 = pow(2, floor(log2(size)));
+        while (size > largestPowerOf2)
+        {
+            KdbTree *tmp = mergeTreeList.back();
+            mergeTreeList.pop_back();
+            numNodes -= tmp->size;
+            size--;
+        }
+    }
+
+    // TODO HERE: iterate over all fetched nodes and remove deleted nodes from bloomfilter
+    // KISS:
+    /*DataNode *bloomValues = new DataNode[numNodes];
+    int offset = 0;
+    for (auto itr = mergeTreeList.begin(); itr != mergeTreeList.end(); ++itr)
+    {
+        KdbTree *treePtr = *itr;
+        KdbTreeFetchNodes(treePtr, &bloomValues[offset]);
+        offset += treePtr->size;
+    }
+    for (int i = 0; i < numNodes; i++)
+    {
+        //check bloomfilter with val: bloomValues[i]
+        //if bloomFilter:
+            //if real:
+                //delete node
+                //numNodes--
+    }
+    //DataNode *values = bloomValues without deleted values
+    //OBS old numNodes:
+    for (int i = 0; i < numNodes; i++)
+    {
+        // if(bloomValues[i] != deleted)
+            //value[seperateCount] = bloomValues[i]
+    }*/
 
     DataNode *values = new DataNode[numNodes * DIMENSIONS];
 
