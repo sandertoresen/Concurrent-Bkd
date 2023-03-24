@@ -259,7 +259,9 @@ void Scheduler::largeBulkloads(int selectedLevel)
         std::sort(&values[d * numNodes], &values[d * numNodes + numNodes], dataNodeCMP(d));
     }
 
-    KdbTree *tree = KdbCreateTree(values, numNodes, generateUniqueId(bkdTree->treeId), selectedLevel + 1);
+    int level = selectedLevel ? mergeTreeList.size() * selectedLevel : mergeTreeList.size();
+
+    KdbTree *tree = KdbCreateTree(values, numNodes, generateUniqueId(bkdTree->treeId), level);
 
     // remove old nodes
     delete[] values;
@@ -298,7 +300,7 @@ void Scheduler::largeBulkloads(int selectedLevel)
             else
             {
                 // OBS didnt find tree to delete??
-                printf("ERROR DIDN'T FIND TREE TO DELETE SHOULDNT BE POSSIBLE\n");
+                printf("|large bulkload|DIDN'T FIND TREE TO DELETE SHOULDNT BE POSSIBLE\n");
                 exit(-1);
             }
         }

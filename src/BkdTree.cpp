@@ -207,7 +207,7 @@ void BkdTree::_bulkloadTree()
             else
             {
                 // OBS didnt find tree to delete??
-                printf("ERROR DIDN'T FIND TREE TO DELETE SHOULDNT BE POSSIBLE\n");
+                printf("|small bulkload|ERROR DIDN'T FIND TREE TO DELETE SHOULDNT BE POSSIBLE\n");
                 exit(-1);
             }
         }
