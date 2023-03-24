@@ -48,10 +48,15 @@ void *_schedulerMainThread(void *scheduler)
         sch->activeThreads++;
         sch->readers.push_back(thread);
     }
+
+    BulkLoadThread *bulkThread = new BulkLoadThread;
+    bulkThread->flag = 1;
+    bulkThread->scheduler = sch;
+    pthread_create(&bulkThread->thread, nullptr, _performLargerBulkLoad, (void *)bulkThread);
     while (running)
     {
 
-        if (sch->bkdTree->treeId.load() > 40)
+        if (sch->bkdTree->treeId.load() > 1000)
         {
             printf("Got %d trees\n", sch->bkdTree->treeId.load());
             sch->shutdown();
@@ -122,6 +127,13 @@ void Scheduler::shutdown()
         t->flag.store(0);
     }
 
+    // TODO: shutdown large bulkload thread
+    if (bulkLoader != nullptr)
+    {
+        printf("Shut down bulkloader\n");
+        bulkLoader->flag.store(0);
+    }
+
     for (auto it = writers.begin(); it != writers.end();)
     {
         ScheduledThread *t = *it;
@@ -141,21 +153,29 @@ void Scheduler::shutdown()
         it = readers.erase(it);
         // delete t;
     }
+    if (bulkLoader != nullptr)
+    {
+        while (bulkLoader->flag.load() != -1)
+        {
+        }
+    }
     printf("threads erased!\n");
 }
 
 void Scheduler::largeBulkloads(int selectedLevel)
 {
-    // TODO: include numTrees to know how many trees of selected level should be bulkloaded
+    // TODO/FILL: include numTrees to know how many trees of selected level should be bulkloaded(?)
 
-    // use tree->level to combine trees.
     int numNodes = 0;
     list<KdbTree *> mergeTreeList;
     if (selectedLevel == 0)
     {
         int size = bkdTree->globalWriteMediumTrees.size();
         int largestPowerOf2 = pow(2, floor(log2(size))); // largest power of 2 less than or equal to size
-
+        if (largestPowerOf2 < 2)
+        {
+            return;
+        }
         int numNodesAdded = 0;
         for (auto it = bkdTree->globalWriteMediumTrees.begin(); it != bkdTree->globalWriteMediumTrees.end() && numNodesAdded < largestPowerOf2; it++)
         {
@@ -180,6 +200,10 @@ void Scheduler::largeBulkloads(int selectedLevel)
         }
         int size = mergeTreeList.size();
         int largestPowerOf2 = pow(2, floor(log2(size)));
+        if (largestPowerOf2 < 2)
+        {
+            return;
+        }
         while (size > largestPowerOf2)
         {
             KdbTree *tmp = mergeTreeList.back();

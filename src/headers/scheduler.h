@@ -61,6 +61,10 @@ public:
    ~Scheduler();
    void deleteOldMaps();
    void shutdown();
+
+   /*
+   Perform bulkloads of given level size, combines largest 2^n nr. of trees of a selected level
+   */
    void largeBulkloads(int selectedLevel);
    BkdTree *bkdTree;
    int maxThreads;
@@ -68,6 +72,7 @@ public:
 
    list<ScheduledThread *> writers;
    list<ScheduledThread *> readers;
+   BulkLoadThread *bulkLoader = nullptr;
 };
 
 void *_schedulerMainThread(void *scheduler);

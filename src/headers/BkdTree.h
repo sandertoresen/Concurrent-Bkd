@@ -53,6 +53,7 @@ public:
     pthread_mutex_t mediumWriteTreesLock;
     list<KdbTree *> globalWriteMediumTrees;
 
+    atomic<int> largestLevel = 0;
     list<KdbTree *> globalWriteLargeTrees;
 
     atomic<long> treeId = 0;

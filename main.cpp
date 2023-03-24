@@ -10,7 +10,6 @@
 int main()
 {
     // _test_kdb_tree_memory_leak();
-
     pthread_t thread;
     Scheduler *scheduler = new Scheduler;
     pthread_create(&thread, nullptr, _schedulerMainThread, (void *)scheduler);

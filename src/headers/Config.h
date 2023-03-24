@@ -1,7 +1,7 @@
 #ifndef CONFIG
 #define CONFIG
 // Config:
-#define KDB_LEAF_SIZE 2
+#define KDB_LEAF_SIZE 128
 
 #define DIMENSIONS 2
 #define CHARACTER_LIMIT 16

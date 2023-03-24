@@ -10,6 +10,7 @@ using namespace std;
 
 class BkdTree;
 class KdbTree;
+class Scheduler;
 
 struct WindowQuery
 {
@@ -21,6 +22,13 @@ struct ScheduledThread
 {
     pthread_t thread;
     BkdTree *tree;
+    atomic<int> flag;
+};
+
+struct BulkLoadThread
+{
+    pthread_t thread;
+    Scheduler *scheduler;
     atomic<int> flag;
 };
 
@@ -46,5 +54,5 @@ void *_threadInserterControlled(void *writerThread);
 
 void *_windowLookup(void *input);
 
-void *_performLargerBulkLoad(void *scheduler);
+void *_performLargerBulkLoad(void *bulkLoadThread);
 #endif
