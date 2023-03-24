@@ -320,7 +320,7 @@ KdbBranch *KdbCreateBranch(DataNode *values, int numNodes, KdbTree *root, KdbBra
                 for (int j = 0; j < rightMiddleIndex; j++)
                 { // go through treeSplit left nodes, look for match
                     // TODO: ha en annen id også?
-                    if (__cordEqual(tmp.cordinates, leftDataNodes[rightMiddleIndex * currentDimension + j].cordinates) && strcmp(tmp.location, leftDataNodes[rightMiddleIndex * currentDimension + j].location))
+                    if (__cordEqual(tmp.cordinates, leftDataNodes[rightMiddleIndex * currentDimension + j].cordinates) && strcmp(tmp.location, leftDataNodes[rightMiddleIndex * currentDimension + j].location) == 0)
                     { // add value to left
                         goneLeft = true;
                         memcpy(&leftDataNodes[d * rightMiddleIndex + leftCounter[d]++], &values[numNodes * d + i], sizeof(DataNode));
@@ -374,6 +374,7 @@ KdbTree *KdbCreateTree(DataNode *values, int numNodes, long treeId, int level)
     // fill data
     memcpy(leftDataNodes, &values[0], sizeof(DataNode) * rightMiddleIndex);
     memcpy(rightDataNodes, &values[rightMiddleIndex], sizeof(DataNode) * rightSize);
+
     int leftCounter[DIMENSIONS] = {};
     int rightCounter[DIMENSIONS] = {};
     for (int i = 0; i < numNodes; i++)
@@ -387,7 +388,7 @@ KdbTree *KdbCreateTree(DataNode *values, int numNodes, long treeId, int level)
                 bool goneLeft = false;
                 for (int j = 0; j < rightMiddleIndex; j++)
                 { // go through treeSplit left nodes, look for match/*PIRAT datanode*/
-                    if (__cordEqual(tmp.cordinates, leftDataNodes[j].cordinates) && strcmp(tmp.location, leftDataNodes[j].location))
+                    if (__cordEqual(tmp.cordinates, leftDataNodes[j].cordinates) && strcmp(tmp.location, leftDataNodes[j].location) == 0)
                     { // add left
                         goneLeft = true;
                         memcpy(&leftDataNodes[d * rightMiddleIndex + leftCounter[d]++], &values[numNodes * d + i], sizeof(DataNode));
@@ -410,6 +411,7 @@ KdbTree *KdbCreateTree(DataNode *values, int numNodes, long treeId, int level)
             }
         }
     }
+
     tree->left = KdbCreateBranch(leftDataNodes, rightMiddleIndex, tree, nullptr, 1 % DIMENSIONS);
     tree->right = KdbCreateBranch(rightDataNodes, rightSize, tree, nullptr, 1 % DIMENSIONS);
 
