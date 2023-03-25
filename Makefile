@@ -14,10 +14,14 @@ HEADERS=src/headers/Config.h src/headers/MemoryStructures.h src/headers/ThreadFu
 OBJDIR=obj
 OBJS=$(addprefix $(OBJDIR)/, $(PROGRAM_SRC:.cpp=.o))
 
-all: program
+all: program programO3
 
 program: $(OBJS)
 	g++ -g -lpthread -o $@ $^
+
+programO3:$(OBJS)
+	g++ -O3 -lpthread -o $@ $^
+
 
 $(OBJDIR)/%.o: %.cpp $(HEADERS) Makefile | $(OBJDIR)
 	g++ -c -g $< -o $@

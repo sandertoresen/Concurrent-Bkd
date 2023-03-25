@@ -185,7 +185,7 @@ void *_windowLookup(void *readerThread)
         auto stop = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::duration<double>>(stop - start);
 
-        printf("Read %d values in %fs\n", query->results.size(), duration.count());
+        // printf("Read %d values in %fs\n", query->results.size(), duration.count());
         // TODO do something with results(?)
         query->results.clear();
 
