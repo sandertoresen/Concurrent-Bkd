@@ -6,9 +6,10 @@
 #include "src/headers/BkdTree.h"
 #include "src/headers/KdbTree.h"
 #include "src/headers/ThreadFunctions.h"
-
+#include "src/headers/BloomFilter.h"
 int main()
 {
+    BloomFilter *filter = new BloomFilter(1386634, 9);
     // _test_kdb_tree_memory_leak();
     pthread_t thread;
     Scheduler *scheduler = new Scheduler;

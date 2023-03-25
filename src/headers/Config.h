@@ -20,7 +20,7 @@
 
 #define API_DELAY_MS 0
 
-#define INITIAL_WRITERS 8
+#define INITIAL_WRITERS 4
 #define INITIAL_READERS 0
 
 #endif

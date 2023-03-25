@@ -252,37 +252,41 @@ void BkdTree::_bulkloadTree()
     delete[] values;
 }
 
-/*
-    Problemstilling:
-    Problem:
-        trenger concurrent list med trær som kan RCU
-    MVP:
-        liste med struct som inneholder atomiske flagg
-        start: ingen cleanup
-        start: ikke lagre arrays (FILL)
+void BkdTree::deleteValue(char *location)
+{
+    pthread_rwlock_wrlock(&rwTombLock);
+    tombstoneList.push_back(location);
+    pthread_rwlock_unlock(&rwTombLock);
+}
+bool BkdTree::isDeleted(char *location)
+{
+    pthread_rwlock_rdlock(&rwTombLock);
+    for (auto it = tombstoneList.begin(); it != tombstoneList.end(); it++)
+    {
+        if (strcmp(location, *it) == 0)
+        {
+            pthread_rwlock_unlock(&rwTombLock);
+            return true;
+        }
+    }
+    pthread_rwlock_unlock(&rwTombLock);
+    return false;
+}
+bool BkdTree::deleteIfFound(char *location)
+{
+    pthread_rwlock_rdlock(&rwTombLock);
+    for (auto it = tombstoneList.begin(); it != tombstoneList.end(); it++)
+    {
+        if (strcmp(location, *it) == 0)
+        {
+            pthread_rwlock_unlock(&rwTombLock);
 
-
-    ADDITIONS:
-        locked(list cleanup)
-
-    LATER:
-        Readers free data if int readers < 0
-
-    1. struct
-    2. list
-
-    IGJENN readers oppgave:
-     1. hente ut en lokal versjon av GlobalMap
-        - iterer over AtomicTreeElement assert element ikke er slettet
-            -> reader++, sjekk if slettet, hvis slettet og reader == 1 sjekk at tree == nullptr før dra videre
-        - tree ikke slettet: les data
-            -> ferdiglest:
-                - reader--
-                - sjekk at treet ikke er slettet
-                    -> hvis slettet sjekk at reader != 0
-                        -> hvis == 0, sjekk at tree == nullptr
-                            -> hvis ikke, slett treet
-
-
-
-*/
+            pthread_rwlock_wrlock(&rwTombLock);
+            tombstoneList.remove(*it);
+            pthread_rwlock_unlock(&rwTombLock);
+            return true;
+        }
+    }
+    pthread_rwlock_unlock(&rwTombLock);
+    return false;
+}

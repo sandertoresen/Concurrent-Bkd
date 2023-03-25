@@ -48,8 +48,6 @@ public:
 
     bool globalChunkReady[GLOBAL_B_CHUNK_SIZE];
 
-    // must assert no other readers have started bulkloading in the meantime, might require lock
-
     pthread_mutex_t smallBulkingLock;
 
     KdbTree *globalWriteSmallTrees[MAX_BULKLOAD_LEVEL];
@@ -69,6 +67,15 @@ public:
 
     // TODO assert this never gets full..
     atomic<AtomicUnorderedMapElement *> schedulerDeletedMaps[SCHEDULER_MAP_ARRAY_SIZE];
+
+    list<char *> tombstoneList;
+    pthread_rwlock_t rwTombLock = PTHREAD_RWLOCK_INITIALIZER;
+
+private:
+    // TODO/FILL: input age to avoid delete before inserted
+    void deleteValue(char *location);
+    bool isDeleted(char *location);
+    bool deleteIfFound(char *location);
 };
 
 // have thread functions which just encapsulates BkdTree calls(?)
