@@ -75,15 +75,13 @@ void *_threadInserter(void *bkdTree)
 
         tree->globalMemory = new DataNode[GLOBAL_BUFFER_SIZE];
         tree->globalMemorySize.store(0);
-        printf("Used globalDisk\n");
 
         pthread_exit(nullptr);
     }
 
-    printf("-----------Start bulkload\n");
     // clear tree->globalMemory and globalDisk
     // put old globalMemory and globalDisk into Read variable untill the data has been inserted (RCU)
-
+    printf("ThreadInserter bulkload\n");
     tree->_bulkloadTree();
 
     pthread_exit(nullptr);
@@ -118,7 +116,7 @@ void *_threadInserterControlled(void *writerThread)
         memcpy(&tree->globalMemory[size],
                &threadData, sizeof(DataNode) * THREAD_BUFFER_SIZE);
 
-        printf("Size: %d Set value at chunk %d\n", size, size / THREAD_BUFFER_SIZE);
+        // printf("Size: %d Set value at chunk %d\n", size, size / THREAD_BUFFER_SIZE);
         tree->globalChunkReady[size / THREAD_BUFFER_SIZE] = true;
 
         // Tree now full -> handle data
@@ -146,15 +144,12 @@ void *_threadInserterControlled(void *writerThread)
 
             tree->globalMemory = new DataNode[GLOBAL_BUFFER_SIZE];
             tree->globalMemorySize.store(0);
-            printf("Used globalDisk\n");
 
             continue;
         }
 
-        printf("-----------Start bulkload\n");
         // clear tree->globalMemory and globalDisk
         // put old globalMemory and globalDisk into Read variable untill the data has been inserted (RCU)
-
         tree->_bulkloadTree();
     }
     thread->flag.store(-1);

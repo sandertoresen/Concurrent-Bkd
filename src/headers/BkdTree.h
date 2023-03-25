@@ -23,7 +23,11 @@ public:
         return (bool)(a.cordinates[dimension] < b.cordinates[dimension]);
     }
 };
-inline long generateUniqueId(atomic<long> &counter);
+
+inline long generateUniqueId(atomic<long> &counter)
+{
+    return counter.fetch_add(1);
+}
 
 class BkdTree
 {

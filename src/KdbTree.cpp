@@ -360,7 +360,6 @@ KdbTree *KdbCreateTree(DataNode *values, int numNodes, long treeId, int level)
     tree->size = numNodes;
     tree->id = treeId;
     tree->level = level;
-    printf("Tree|numNodes:%d\n", numNodes);
 
     int leftMiddleIndex = numNodes / 2 - !(numNodes % 2);
     int rightMiddleIndex = leftMiddleIndex + 1;

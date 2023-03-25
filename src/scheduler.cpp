@@ -170,23 +170,32 @@ void Scheduler::largeBulkloads(int selectedLevel)
     list<KdbTree *> mergeTreeList;
     if (selectedLevel == 0)
     {
+        pthread_mutex_lock(&bkdTree->mediumWriteTreesLock);
         int size = bkdTree->globalWriteMediumTrees.size();
         int largestPowerOf2 = pow(2, floor(log2(size))); // largest power of 2 less than or equal to size
         if (largestPowerOf2 < 2)
         {
+            pthread_mutex_unlock(&bkdTree->mediumWriteTreesLock);
             return;
         }
         int numNodesAdded = 0;
-        for (auto it = bkdTree->globalWriteMediumTrees.begin(); it != bkdTree->globalWriteMediumTrees.end() && numNodesAdded < largestPowerOf2; it++)
+        auto it = bkdTree->globalWriteMediumTrees.begin();
+        while (it != bkdTree->globalWriteMediumTrees.end() && numNodesAdded < largestPowerOf2)
         {
             KdbTree *tmp = *it;
             mergeTreeList.push_back(tmp);
+            it = bkdTree->globalWriteMediumTrees.erase(it); // Erase the value and update the iterator
             numNodesAdded++;
             numNodes = tmp->size;
+            printf("added tree %ld\n", tmp->id);
         }
+        pthread_mutex_unlock(&bkdTree->mediumWriteTreesLock);
+        printf("Nr of large trees for bulking: %d numnodes%d\n", mergeTreeList.size(), numNodes);
     }
     else
     {
+        printf("we in large trees theretory\n");
+        exit(1);
         int treeCount = 0;
         for (auto it = bkdTree->globalWriteLargeTrees.begin(); it != bkdTree->globalWriteLargeTrees.end(); it++)
         {
@@ -239,6 +248,13 @@ void Scheduler::largeBulkloads(int selectedLevel)
             //value[seperateCount] = bloomValues[i]
     }*/
 
+    /*
+    for (auto it = mergeTreeList.begin(); it != mergeTreeList.end(); it++)
+    {
+        KdbTree *printTree = *it;
+        printf("Tree id: %ld\n", printTree->id);
+    }*/
+
     DataNode *values = new DataNode[numNodes * DIMENSIONS];
 
     int offset = 0;
@@ -260,7 +276,10 @@ void Scheduler::largeBulkloads(int selectedLevel)
     }
 
     int level = selectedLevel ? mergeTreeList.size() * selectedLevel : mergeTreeList.size();
-
+    if (level < bkdTree->largestLevel.load())
+    {
+        bkdTree->largestLevel.store(level);
+    }
     KdbTree *tree = KdbCreateTree(values, numNodes, generateUniqueId(bkdTree->treeId), level);
 
     // remove old nodes
@@ -269,7 +288,7 @@ void Scheduler::largeBulkloads(int selectedLevel)
     bkdTree->globalWriteLargeTrees.push_back(tree);
 
     AtomicUnorderedMapElement *mapCopy = new AtomicUnorderedMapElement;
-
+    pthread_mutex_lock(&bkdTree->globalReadMapWriteLock);
     if (bkdTree->globalReadMap == nullptr)
     {
         mapCopy->readableTrees = new unordered_map<long, AtomicTreeElement *>();
@@ -280,13 +299,13 @@ void Scheduler::largeBulkloads(int selectedLevel)
                                                    AtomicTreeElement *>(*bkdTree->globalReadMap->readableTrees);
     }
 
+    // exit(1);
     // for value in map: if value.id exists in mergeTreeList, delete it
     for (auto it = mergeTreeList.begin(); it != mergeTreeList.end();)
     {
         KdbTree *deleteTree = *it;
-
+        printf("Deleting %ld from map copy\n", deleteTree->id);
         mapCopy->readableTrees->erase(deleteTree->id);
-
         if (bkdTree->globalReadMap != NULL)
         {
             unordered_map<long, AtomicTreeElement *> *mapPtr = bkdTree->globalReadMap->readableTrees;
@@ -301,6 +320,7 @@ void Scheduler::largeBulkloads(int selectedLevel)
             {
                 // OBS didnt find tree to delete??
                 printf("|large bulkload|DIDN'T FIND TREE TO DELETE SHOULDNT BE POSSIBLE\n");
+                printf("Didn't find tree %ld\n", deleteTree->id);
                 exit(-1);
             }
         }
@@ -314,6 +334,7 @@ void Scheduler::largeBulkloads(int selectedLevel)
 
     AtomicUnorderedMapElement *oldMap = bkdTree->globalReadMap;
     bkdTree->globalReadMap = mapCopy;
+    pthread_mutex_unlock(&bkdTree->globalReadMapWriteLock);
 
     if (oldMap != nullptr)
     {
@@ -342,4 +363,5 @@ void Scheduler::largeBulkloads(int selectedLevel)
             }
         }
     }
+    printf("Completed large bulkload\n");
 }

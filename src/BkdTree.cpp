@@ -69,11 +69,6 @@ BkdTree::~BkdTree() // Destructor
     delete API;
 }
 
-inline long generateUniqueId(atomic<long> &counter)
-{
-    return counter.fetch_add(1);
-}
-
 // pointers to take in Memory array, Disk array
 void BkdTree::_bulkloadTree()
 {
@@ -158,8 +153,9 @@ void BkdTree::_bulkloadTree()
     }
     else
     { // store large tree
-        tree->level = 1;
+        pthread_mutex_lock(&mediumWriteTreesLock);
         globalWriteMediumTrees.push_back(tree);
+        pthread_mutex_unlock(&mediumWriteTreesLock);
     }
 
     /*
