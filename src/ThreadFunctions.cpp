@@ -187,6 +187,19 @@ void *_windowLookup(void *readerThread)
 
         // printf("Read %d values in %fs\n", query->results.size(), duration.count());
         // TODO do something with results(?)
+        for (auto it = query->results.begin(); it != query->results.end();)
+        {
+            DataNode tmp = *it;
+            if (tree->isDeleted(tmp.location))
+            {
+                it = query->results.erase(it);
+            }
+            else
+            {
+                it++;
+            }
+        }
+
         query->results.clear();
 
         delete query;

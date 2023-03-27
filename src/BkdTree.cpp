@@ -7,6 +7,7 @@
 #include "headers/KdbTree.h"
 #include "headers/MockAPI.h"
 #include "headers/ThreadFunctions.h"
+#include "headers/BloomFilter.h"
 
 BkdTree::BkdTree() // default constructor
 {
@@ -37,6 +38,8 @@ BkdTree::BkdTree() // default constructor
         printf("\n mutex init has failed\n");
         exit(0);
     }
+
+    graveFilter = new BloomFilter(BLOOM_SIZE, BLOOM_NUM_HASHES);
 }
 
 BkdTree::~BkdTree() // Destructor
@@ -67,6 +70,7 @@ BkdTree::~BkdTree() // Destructor
         delete globalReadMap;
     }
     delete API;
+    delete graveFilter;
 }
 
 // pointers to take in Memory array, Disk array
@@ -257,36 +261,43 @@ void BkdTree::deleteValue(char *location)
     pthread_rwlock_wrlock(&rwTombLock);
     tombstoneList.push_back(location);
     pthread_rwlock_unlock(&rwTombLock);
+    graveFilter->add(location);
 }
 bool BkdTree::isDeleted(char *location)
 {
-    pthread_rwlock_rdlock(&rwTombLock);
-    for (auto it = tombstoneList.begin(); it != tombstoneList.end(); it++)
+    if (graveFilter->contains(location))
     {
-        if (strcmp(location, *it) == 0)
+        pthread_rwlock_rdlock(&rwTombLock);
+        for (auto it = tombstoneList.begin(); it != tombstoneList.end(); it++)
         {
-            pthread_rwlock_unlock(&rwTombLock);
-            return true;
+            if (strcmp(location, *it) == 0)
+            {
+                pthread_rwlock_unlock(&rwTombLock);
+                return true;
+            }
         }
+        pthread_rwlock_unlock(&rwTombLock);
     }
-    pthread_rwlock_unlock(&rwTombLock);
     return false;
 }
 bool BkdTree::deleteIfFound(char *location)
 {
-    pthread_rwlock_rdlock(&rwTombLock);
-    for (auto it = tombstoneList.begin(); it != tombstoneList.end(); it++)
+    if (graveFilter->contains(location))
     {
-        if (strcmp(location, *it) == 0)
+        pthread_rwlock_rdlock(&rwTombLock);
+        for (auto it = tombstoneList.begin(); it != tombstoneList.end(); it++)
         {
-            pthread_rwlock_unlock(&rwTombLock);
+            if (strcmp(location, *it) == 0)
+            {
+                pthread_rwlock_unlock(&rwTombLock);
 
-            pthread_rwlock_wrlock(&rwTombLock);
-            tombstoneList.remove(*it);
-            pthread_rwlock_unlock(&rwTombLock);
-            return true;
+                pthread_rwlock_wrlock(&rwTombLock);
+                tombstoneList.remove(*it);
+                pthread_rwlock_unlock(&rwTombLock);
+                return true;
+            }
         }
+        pthread_rwlock_unlock(&rwTombLock);
     }
-    pthread_rwlock_unlock(&rwTombLock);
     return false;
 }

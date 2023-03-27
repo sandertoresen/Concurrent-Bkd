@@ -23,4 +23,7 @@
 #define INITIAL_WRITERS 4
 #define INITIAL_READERS 0
 
+#define BLOOM_SIZE 1000000
+#define BLOOM_NUM_HASHES 6
+
 #endif

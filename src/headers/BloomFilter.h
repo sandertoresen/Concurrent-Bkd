@@ -3,6 +3,7 @@
 
 #include <bitset>
 #include <functional>
+#include <pthread.h>
 
 using std::bitset;
 
@@ -18,6 +19,7 @@ private:
     bitset<100000> filter;
     int numHashes;
     std::hash<char *> hashFunction;
+    pthread_rwlock_t lock = PTHREAD_RWLOCK_INITIALIZER;
 };
 
 #endif

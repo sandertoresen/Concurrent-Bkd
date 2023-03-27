@@ -222,9 +222,7 @@ void Scheduler::largeBulkloads(int selectedLevel)
         }
     }
 
-    // TODO HERE: iterate over all fetched nodes and remove deleted nodes from bloomfilter
-    // KISS:
-    /*DataNode *bloomValues = new DataNode[numNodes];
+    DataNode *bloomValues = new DataNode[numNodes];
     int offset = 0;
     for (auto itr = mergeTreeList.begin(); itr != mergeTreeList.end(); ++itr)
     {
@@ -232,40 +230,31 @@ void Scheduler::largeBulkloads(int selectedLevel)
         KdbTreeFetchNodes(treePtr, &bloomValues[offset]);
         offset += treePtr->size;
     }
+
+    int updatedNodes = numNodes;
     for (int i = 0; i < numNodes; i++)
     {
-        //check bloomfilter with val: bloomValues[i]
-        //if bloomFilter:
-            //if real:
-                //delete node
-                //numNodes--
+        if (bkdTree->isDeleted(bloomValues[i].location))
+        {
+            bloomValues[i].location[0] = '\0'; // Mark the node as deleted
+            updatedNodes--;
+        }
     }
-    //DataNode *values = bloomValues without deleted values
-    //OBS old numNodes:
+
+    // Create new DataNode *array without any deleted nodes
+    DataNode *values = new DataNode[updatedNodes * DIMENSIONS];
+    int j = 0;
     for (int i = 0; i < numNodes; i++)
     {
-        // if(bloomValues[i] != deleted)
-            //value[seperateCount] = bloomValues[i]
-    }*/
-
-    /*
-    for (auto it = mergeTreeList.begin(); it != mergeTreeList.end(); it++)
-    {
-        KdbTree *printTree = *it;
-        printf("Tree id: %ld\n", printTree->id);
-    }*/
-
-    DataNode *values = new DataNode[numNodes * DIMENSIONS];
-
-    int offset = 0;
-    for (auto itr = mergeTreeList.begin(); itr != mergeTreeList.end(); ++itr)
-    {
-        KdbTree *treePtr = *itr;
-        KdbTreeFetchNodes(treePtr, &values[offset]);
-        offset += treePtr->size;
+        if (bloomValues[i].location[0] != '\0')
+        {
+            values[j] = bloomValues[i];
+            j++;
+        }
     }
 
-    // Here check for deleted values..
+    delete[] bloomValues;
+    numNodes = updatedNodes;
 
     for (int d = 0; d < DIMENSIONS; d++)
     {

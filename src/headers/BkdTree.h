@@ -8,6 +8,7 @@
 struct DataNode;
 struct KdbTree;
 class MockApi;
+class BloomFilter;
 
 class dataNodeCMP
 {
@@ -36,7 +37,7 @@ public:
     ~BkdTree();
 
     int insert(DataNode *values);
-    void windowLookup(list<DataNode> &values, int window[DIMENSIONS][2]);
+    void deleteNode(char *location);
     void _bulkloadTree();
 
     MockApi *API;
@@ -68,14 +69,15 @@ public:
     // TODO assert this never gets full..
     atomic<AtomicUnorderedMapElement *> schedulerDeletedMaps[SCHEDULER_MAP_ARRAY_SIZE];
 
-    list<char *> tombstoneList;
-    pthread_rwlock_t rwTombLock = PTHREAD_RWLOCK_INITIALIZER;
-
-private:
-    // TODO/FILL: input age to avoid delete before inserted
     void deleteValue(char *location);
     bool isDeleted(char *location);
     bool deleteIfFound(char *location);
+
+private:
+    list<char *> tombstoneList;
+    pthread_rwlock_t rwTombLock = PTHREAD_RWLOCK_INITIALIZER;
+    // TODO/FILL: input age to avoid delete before inserted
+    BloomFilter *graveFilter;
 };
 
 // have thread functions which just encapsulates BkdTree calls(?)

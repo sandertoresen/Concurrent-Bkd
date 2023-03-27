@@ -2,6 +2,7 @@
 #include <functional>
 #include <iostream>
 #include <cstring>
+#include <pthread.h>
 #include "headers/Config.h"
 #include "headers/BloomFilter.h"
 
@@ -22,7 +23,9 @@ void BloomFilter::add(const char *value)
         std::strcat(valueWithHash, std::to_string(i).c_str());
         int currentHash = hashFunction(valueWithHash);
         int index = currentHash % filter.size();
+        pthread_rwlock_wrlock(&lock);
         filter.set(index, true);
+        pthread_rwlock_unlock(&lock);
     }
 }
 
@@ -35,10 +38,12 @@ bool BloomFilter::contains(const char *value)
         std::strcat(valueWithHash, std::to_string(i).c_str());
         int currentHash = hashFunction(valueWithHash);
         int index = currentHash % filter.size();
-        if (!filter.test(index))
-        {
-            return false;
-        }
+
+        pthread_rwlock_rdlock(&lock);
+        bool contain = (bool)!filter.test(index);
+        pthread_rwlock_unlock(&lock);
+        if (contain)
+            return contain;
     }
-    return true;
+    return false;
 }
