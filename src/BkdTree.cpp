@@ -1,5 +1,6 @@
 #include <iostream>
 #include <list>
+#include <set>
 #include <string.h>
 #include <algorithm>
 #include "headers/Config.h"
@@ -45,6 +46,9 @@ BkdTree::BkdTree() // default constructor
 BkdTree::~BkdTree() // Destructor
 {
     printf("Destructor runs!\n");
+
+    delete API;
+
     if (globalMemory != nullptr)
     {
         printf("delete global!\n");
@@ -56,20 +60,75 @@ BkdTree::~BkdTree() // Destructor
         delete[] globalDisk;
     }
 
+    pthread_mutex_destroy(&smallBulkingLock);
+
+    set<KdbTree *> deletedTrees;
+    for (int i = 0; i < MAX_BULKLOAD_LEVEL; i++)
+    {
+        if (globalWriteSmallTrees[i] != nullptr)
+        {
+            deletedTrees.insert(globalWriteSmallTrees[i]);
+        }
+    }
+
+    pthread_mutex_destroy(&mediumWriteTreesLock);
+    for (auto kdbTree : globalWriteMediumTrees)
+    {
+        deletedTrees.insert(kdbTree);
+    }
+    globalWriteMediumTrees.clear();
+
+    for (auto kdbTree : globalWriteLargeTrees)
+    {
+        deletedTrees.insert(kdbTree);
+    }
+    globalWriteLargeTrees.clear();
+
+    pthread_mutex_destroy(&globalReadMapWriteLock);
     if (globalReadMap != nullptr)
     {
         for (auto it = globalReadMap->readableTrees->begin(); it != globalReadMap->readableTrees->end();)
         {
             // TODO OBS we don't check for active readers, make this safe with scheduler
             AtomicTreeElement *tmp = it->second;
-            KdbDestroyTree(tmp->tree);
+            deletedTrees.insert(tmp->tree);
             delete tmp;
             it = globalReadMap->readableTrees->erase(it);
         }
         delete globalReadMap->readableTrees;
         delete globalReadMap;
     }
-    delete API;
+
+    // atomic<AtomicUnorderedMapElement *> schedulerDeletedMaps[SCHEDULER_MAP_ARRAY_SIZE];
+    for (int i = 0; i < SCHEDULER_MAP_ARRAY_SIZE; i++)
+    {
+        AtomicUnorderedMapElement *deletedElement = schedulerDeletedMaps[i];
+        if (deletedElement == nullptr)
+            continue;
+        for (auto it = deletedElement->readableTrees->begin(); it != deletedElement->readableTrees->end();)
+        {
+            AtomicTreeElement *tmp = it->second;
+            deletedTrees.insert(tmp->tree);
+            delete tmp;
+            it = deletedElement->readableTrees->erase(it);
+        }
+        delete deletedElement->readableTrees;
+        delete deletedElement;
+    }
+
+    for (auto kdbTree : deletedTrees)
+    {
+        KdbDestroyTree(kdbTree);
+    }
+
+    deletedTrees.clear();
+
+    for (auto location : tombstoneList)
+    {
+        delete location;
+    }
+
+    pthread_rwlock_destroy(&rwTombLock);
     delete graveFilter;
 }
 
@@ -86,8 +145,8 @@ void BkdTree::_bulkloadTree()
     globalMemory = new DataNode[GLOBAL_BUFFER_SIZE];
     fill_n(globalChunkReady, GLOBAL_B_CHUNK_SIZE, false);
     globalDisk = nullptr;
-    globalDiskSize.store(0);
     globalMemorySize.store(0);
+    globalDiskSize.store(0);
 
     int numNodes = localMemorySize + localDiskSize;
 
@@ -150,7 +209,7 @@ void BkdTree::_bulkloadTree()
     }
 
     KdbTree *tree = KdbCreateTree(values, numNodes, generateUniqueId(treeId), 0);
-
+    delete[] values;
     if (treeArrayLocation != -1)
     { // store normal tree
         globalWriteSmallTrees[treeArrayLocation] = tree;
@@ -251,9 +310,6 @@ void BkdTree::_bulkloadTree()
         }
     }
     pthread_mutex_unlock(&smallBulkingLock);
-
-    // remove old nodes
-    delete[] values;
 }
 
 void BkdTree::deleteValue(char *location)

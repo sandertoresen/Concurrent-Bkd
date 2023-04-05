@@ -20,6 +20,20 @@ Scheduler::Scheduler()
 }
 Scheduler::~Scheduler()
 {
+    if (writers.begin() != writers.end())
+    {
+        printf("OBS writers not deleted!\n");
+    }
+    if (readers.begin() != readers.end())
+    {
+        printf("OBS readers not deleted!\n");
+    }
+
+    if (bulkLoader != nullptr)
+    {
+        printf("OBS bulkloader not deleted!\n");
+    }
+
     delete bkdTree;
 }
 
@@ -34,7 +48,7 @@ void *_schedulerMainThread(void *scheduler)
         ScheduledThread *thread = new ScheduledThread;
         thread->flag = 1;
         thread->tree = sch->bkdTree;
-        pthread_create(&thread->thread, nullptr, _threadInserterControlled, (void *)thread);
+        pthread_create(&thread->thread, nullptr, _threadInserter, (void *)thread);
         sch->activeThreads++;
         sch->writers.push_back(thread);
     }
@@ -49,14 +63,15 @@ void *_schedulerMainThread(void *scheduler)
         sch->readers.push_back(thread);
     }
 
-    BulkLoadThread *bulkThread = new BulkLoadThread;
+    /*BulkLoadThread *bulkThread = new BulkLoadThread;
     bulkThread->flag = 1;
     bulkThread->scheduler = sch;
     pthread_create(&bulkThread->thread, nullptr, _performLargerBulkLoad, (void *)bulkThread);
+    */
+
     while (running)
     {
-
-        if (sch->bkdTree->treeId.load() > 1000)
+        if (sch->bkdTree->treeId.load() > 0)
         {
             printf("Got %d trees\n", sch->bkdTree->treeId.load());
             sch->shutdown();
@@ -140,8 +155,9 @@ void Scheduler::shutdown()
         while (t->flag.load() != -1)
         {
         }
+        pthread_join(t->thread, nullptr);
+        delete t;
         it = writers.erase(it);
-        // delete t;
     }
 
     for (auto it = readers.begin(); it != readers.end();)
@@ -150,14 +166,18 @@ void Scheduler::shutdown()
         while (t->flag.load() != -1)
         {
         }
+        pthread_join(t->thread, nullptr);
+        delete t;
         it = readers.erase(it);
-        // delete t;
     }
     if (bulkLoader != nullptr)
     {
         while (bulkLoader->flag.load() != -1)
         {
         }
+        pthread_join(bulkLoader->thread, nullptr);
+        delete bulkLoader;
+        bulkLoader = nullptr;
     }
     printf("threads erased!\n");
 }

@@ -14,6 +14,11 @@ BloomFilter::BloomFilter(int size, int numHash)
     numHashes = numHash;
 }
 
+BloomFilter::~BloomFilter()
+{
+    pthread_rwlock_destroy(&lock);
+}
+
 void BloomFilter::add(const char *value)
 {
     for (int i = 0; i < numHashes; ++i)

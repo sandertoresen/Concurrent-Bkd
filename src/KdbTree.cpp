@@ -425,6 +425,7 @@ void KdbDestroyTree(KdbTree *tree)
     {
         return;
     }
+    printf("I am destroying %d tree\n", tree->id);
     // tree->leafList
 
     _KdbDestroyBranch(tree->left);

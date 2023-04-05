@@ -48,9 +48,7 @@ struct AtomicUnorderedMapElement
     unordered_map<long, AtomicTreeElement *> *readableTrees;
 };
 
-void *_threadInserter(void *bkdTree);
-
-void *_threadInserterControlled(void *writerThread);
+void *_threadInserter(void *writerThread);
 
 void *_windowLookup(void *input);
 

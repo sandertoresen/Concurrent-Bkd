@@ -11,6 +11,7 @@ class BloomFilter
 {
 public:
     BloomFilter(int size, int numHash);
+    ~BloomFilter();
     void add(const char *value);
 
     bool contains(const char *value);

@@ -21,73 +21,8 @@ struct input {
     InsertApi *stream; // mock stream of data
 };
 */
-void *_threadInserter(void *bkdTree)
-{
-    BkdTree *tree = (BkdTree *)bkdTree;
-    DataNode threadData[THREAD_BUFFER_SIZE];
 
-    for (int i = 0; i < THREAD_BUFFER_SIZE; i++)
-    {
-        tree->API->fetchRandom(&threadData[i]);
-    }
-
-    int size, updatedSize;
-
-    while (1)
-    {
-        size = tree->globalMemorySize.load();
-        updatedSize = size + THREAD_BUFFER_SIZE;
-
-        if (size >= GLOBAL_BUFFER_SIZE)
-            continue;
-        if (tree->globalMemorySize.compare_exchange_weak(size, updatedSize))
-            break;
-    }
-
-    memcpy(&tree->globalMemory[size],
-           &threadData, sizeof(DataNode) * THREAD_BUFFER_SIZE);
-
-    printf("Size: %d Set value at chunk %d\n", size, size / THREAD_BUFFER_SIZE);
-    tree->globalChunkReady[size / THREAD_BUFFER_SIZE] = true;
-
-    // Tree now full -> handle data
-    if (updatedSize < GLOBAL_BUFFER_SIZE)
-    {
-        pthread_exit(nullptr);
-    }
-
-    bool moreWork = true;
-    while (moreWork)
-    {
-        moreWork = false;
-        for (int i = 0; i < GLOBAL_B_CHUNK_SIZE; i++)
-        {
-            moreWork += !tree->globalChunkReady[i];
-        }
-    }
-
-    if (tree->globalDisk == nullptr)
-    {
-        tree->globalDisk = tree->globalMemory;
-        tree->globalDiskSize.store(GLOBAL_BUFFER_SIZE);
-
-        fill_n(tree->globalChunkReady, GLOBAL_B_CHUNK_SIZE, false);
-
-        tree->globalMemory = new DataNode[GLOBAL_BUFFER_SIZE];
-        tree->globalMemorySize.store(0);
-
-        pthread_exit(nullptr);
-    }
-
-    // clear tree->globalMemory and globalDisk
-    // put old globalMemory and globalDisk into Read variable untill the data has been inserted (RCU)
-    printf("ThreadInserter bulkload\n");
-    tree->_bulkloadTree();
-
-    pthread_exit(nullptr);
-}
-
-void *_threadInserterControlled(void *writerThread)
+void *_threadInserter(void *writerThread)
 {
     ScheduledThread *thread = (ScheduledThread *)writerThread;
     BkdTree *tree = thread->tree;
@@ -151,6 +86,7 @@ void *_threadInserterControlled(void *writerThread)
         // clear tree->globalMemory and globalDisk
         // put old globalMemory and globalDisk into Read variable untill the data has been inserted (RCU)
         tree->_bulkloadTree();
+        break;
     }
     thread->flag.store(-1);
     pthread_exit(nullptr);

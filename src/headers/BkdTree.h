@@ -40,17 +40,16 @@ public:
     void deleteNode(char *location);
     void _bulkloadTree();
 
-    MockApi *API;
-    DataNode *globalMemory;
+    MockApi *API = nullptr;
+    DataNode *globalMemory = nullptr;
     atomic<int> globalMemorySize;
 
-    DataNode *globalDisk;
+    DataNode *globalDisk = nullptr;
     atomic<int> globalDiskSize;
 
     bool globalChunkReady[GLOBAL_B_CHUNK_SIZE];
 
     pthread_mutex_t smallBulkingLock;
-
     KdbTree *globalWriteSmallTrees[MAX_BULKLOAD_LEVEL];
 
     pthread_mutex_t mediumWriteTreesLock;
@@ -63,8 +62,8 @@ public:
 
     // read values
 
-    AtomicUnorderedMapElement *globalReadMap = nullptr;
     pthread_mutex_t globalReadMapWriteLock;
+    AtomicUnorderedMapElement *globalReadMap = nullptr;
 
     // TODO assert this never gets full..
     atomic<AtomicUnorderedMapElement *> schedulerDeletedMaps[SCHEDULER_MAP_ARRAY_SIZE];
