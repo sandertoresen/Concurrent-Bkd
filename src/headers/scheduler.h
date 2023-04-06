@@ -2,6 +2,7 @@
 #define SCHEDULER
 #include <atomic>
 #include <pthread.h>
+#include <unordered_set>
 #include "ThreadFunctions.h"
 #include "BkdTree.h"
 #include "MockAPI.h"
@@ -73,6 +74,7 @@ public:
    list<ScheduledThread *> writers;
    list<ScheduledThread *> readers;
    BulkLoadThread *bulkLoader = nullptr;
+   unordered_set<long> deletedKdbTrees;
 };
 
 void *_schedulerMainThread(void *scheduler);

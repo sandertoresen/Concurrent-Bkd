@@ -11,10 +11,9 @@
 
 int main()
 {
-    pthread_t thread;
     Scheduler *scheduler = new Scheduler;
-    pthread_create(&thread, nullptr, _schedulerMainThread, (void *)scheduler);
-    pthread_join(thread, nullptr);
+    _schedulerMainThread((void *)scheduler);
+    printf("Delete scheduler\n");
     delete scheduler;
 }
 

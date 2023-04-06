@@ -35,7 +35,6 @@ struct BulkLoadThread
 struct AtomicTreeElement
 {
     // readers flag
-    long treeId; // id for writers to locate variable
     // atomic<int> readers = 0;
     atomic<bool> deleted = false;
     KdbTree *tree;

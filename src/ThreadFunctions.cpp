@@ -86,7 +86,6 @@ void *_threadInserter(void *writerThread)
         // clear tree->globalMemory and globalDisk
         // put old globalMemory and globalDisk into Read variable untill the data has been inserted (RCU)
         tree->_bulkloadTree();
-        break;
     }
     thread->flag.store(-1);
     pthread_exit(nullptr);
@@ -136,6 +135,7 @@ void *_windowLookup(void *readerThread)
             }
         }
 
+        // printf("Got %d size query\n", query->results.size());
         query->results.clear();
 
         delete query;

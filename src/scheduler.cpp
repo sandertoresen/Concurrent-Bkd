@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <iostream>
 #include <unordered_map>
+#include <unordered_set>
 #include "headers/BkdTree.h"
 #include "headers/KdbTree.h"
 #include "headers/MockAPI.h"
@@ -63,15 +64,17 @@ void *_schedulerMainThread(void *scheduler)
         sch->readers.push_back(thread);
     }
 
-    /*BulkLoadThread *bulkThread = new BulkLoadThread;
-    bulkThread->flag = 1;
-    bulkThread->scheduler = sch;
-    pthread_create(&bulkThread->thread, nullptr, _performLargerBulkLoad, (void *)bulkThread);
-    */
+    if (BULK_THREAD)
+    {
+        BulkLoadThread *bulkThread = new BulkLoadThread;
+        bulkThread->flag = 1;
+        bulkThread->scheduler = sch;
+        pthread_create(&bulkThread->thread, nullptr, _performLargerBulkLoad, (void *)bulkThread);
+    }
 
     while (running)
     {
-        if (sch->bkdTree->treeId.load() > 0)
+        if (sch->bkdTree->treeId.load() > TREES_CREATED)
         {
             printf("Got %d trees\n", sch->bkdTree->treeId.load());
             sch->shutdown();
@@ -87,14 +90,14 @@ void *_schedulerMainThread(void *scheduler)
     // cleanup old trees/scheduler maps..
 
     // Simulate workflow by changing API->delay
-
-    pthread_exit(nullptr);
+    return NULL;
 }
 
 void Scheduler::deleteOldMaps()
 {
     // schedulerDeletedMaps[i]
     // bkdTree->schedulerDeletedMaps
+
     for (int i = 0; i < SCHEDULER_MAP_ARRAY_SIZE; i++)
     {
         AtomicUnorderedMapElement *deleteMap = bkdTree->schedulerDeletedMaps[i].load();
@@ -111,11 +114,16 @@ void Scheduler::deleteOldMaps()
         //  deleteMap->readableTrees
         for (const auto &[_, value] : *deleteMap->readableTrees)
         {
-            if (!value->deleted)
+            if (!value->deleted.load())
             {
                 continue;
             }
-            KdbDestroyTree(value->tree);
+
+            if (deletedKdbTrees.find(value->tree->id) == deletedKdbTrees.end())
+            {
+                KdbDestroyTree(value->tree);
+                deletedKdbTrees.insert(value->tree->id);
+            }
 
             bkdTree->schedulerDeletedMaps[i].store(nullptr);
         }
@@ -338,7 +346,6 @@ void Scheduler::largeBulkloads(int selectedLevel)
     }
     AtomicTreeElement *treeContainer = new AtomicTreeElement;
     treeContainer->tree = tree;
-    treeContainer->treeId = tree->id;
     mapCopy->readableTrees->insert(make_pair(tree->id, treeContainer));
 
     AtomicUnorderedMapElement *oldMap = bkdTree->globalReadMap;

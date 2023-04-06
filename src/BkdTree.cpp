@@ -63,6 +63,7 @@ BkdTree::~BkdTree() // Destructor
     pthread_mutex_destroy(&smallBulkingLock);
 
     set<KdbTree *> deletedTrees;
+    set<AtomicTreeElement *> deletedTreeContainers;
     for (int i = 0; i < MAX_BULKLOAD_LEVEL; i++)
     {
         if (globalWriteSmallTrees[i] != nullptr)
@@ -92,7 +93,7 @@ BkdTree::~BkdTree() // Destructor
             // TODO OBS we don't check for active readers, make this safe with scheduler
             AtomicTreeElement *tmp = it->second;
             deletedTrees.insert(tmp->tree);
-            delete tmp;
+            deletedTreeContainers.insert(tmp);
             it = globalReadMap->readableTrees->erase(it);
         }
         delete globalReadMap->readableTrees;
@@ -109,7 +110,8 @@ BkdTree::~BkdTree() // Destructor
         {
             AtomicTreeElement *tmp = it->second;
             deletedTrees.insert(tmp->tree);
-            delete tmp;
+
+            deletedTreeContainers.insert(tmp);
             it = deletedElement->readableTrees->erase(it);
         }
         delete deletedElement->readableTrees;
@@ -120,8 +122,13 @@ BkdTree::~BkdTree() // Destructor
     {
         KdbDestroyTree(kdbTree);
     }
-
     deletedTrees.clear();
+
+    for (auto container : deletedTreeContainers)
+    {
+        delete container;
+    }
+    deletedTreeContainers.clear();
 
     for (auto location : tombstoneList)
     {
@@ -261,6 +268,7 @@ void BkdTree::_bulkloadTree()
             if (itr != mapPtr->end())
             {
                 AtomicTreeElement *treeContainer = itr->second;
+                printf("Delete treeId: %d\n", deleteTree->id);
                 treeContainer->deleted.store(true);
             }
             else
@@ -275,7 +283,6 @@ void BkdTree::_bulkloadTree()
     }
     AtomicTreeElement *treeContainer = new AtomicTreeElement;
     treeContainer->tree = tree;
-    treeContainer->treeId = tree->id;
     mapCopy->readableTrees->insert(make_pair(tree->id, treeContainer));
 
     AtomicUnorderedMapElement *oldMap = globalReadMap;
