@@ -130,7 +130,7 @@ BkdTree::~BkdTree() // Destructor
     }
     deletedTreeContainers.clear();
 
-    for (auto location : tombstoneList)
+    for (auto location : tombstone)
     {
         delete location;
     }
@@ -322,7 +322,7 @@ void BkdTree::_bulkloadTree()
 void BkdTree::deleteValue(char *location)
 {
     pthread_rwlock_wrlock(&rwTombLock);
-    tombstoneList.push_back(location);
+    tombstone.insert(location);
     pthread_rwlock_unlock(&rwTombLock);
     graveFilter->add(location);
 }
@@ -331,13 +331,10 @@ bool BkdTree::isDeleted(char *location)
     if (graveFilter->contains(location))
     {
         pthread_rwlock_rdlock(&rwTombLock);
-        for (auto it = tombstoneList.begin(); it != tombstoneList.end(); it++)
+        if (tombstone.find(location) != tombstone.end())
         {
-            if (strcmp(location, *it) == 0)
-            {
-                pthread_rwlock_unlock(&rwTombLock);
-                return true;
-            }
+            pthread_rwlock_unlock(&rwTombLock);
+            return true;
         }
         pthread_rwlock_unlock(&rwTombLock);
     }
@@ -348,17 +345,15 @@ bool BkdTree::deleteIfFound(char *location)
     if (graveFilter->contains(location))
     {
         pthread_rwlock_rdlock(&rwTombLock);
-        for (auto it = tombstoneList.begin(); it != tombstoneList.end(); it++)
+        auto iter = tombstone.find(location);
+        if (iter != tombstone.end())
         {
-            if (strcmp(location, *it) == 0)
-            {
-                pthread_rwlock_unlock(&rwTombLock);
-
-                pthread_rwlock_wrlock(&rwTombLock);
-                tombstoneList.remove(*it);
-                pthread_rwlock_unlock(&rwTombLock);
-                return true;
-            }
+            pthread_rwlock_unlock(&rwTombLock);
+            pthread_rwlock_wrlock(&rwTombLock);
+            delete[] (*iter);
+            tombstone.erase(iter);
+            pthread_rwlock_unlock(&rwTombLock);
+            return true;
         }
         pthread_rwlock_unlock(&rwTombLock);
     }

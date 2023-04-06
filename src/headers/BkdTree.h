@@ -2,6 +2,7 @@
 #define BKD_TREE_H
 #include <list>
 #include <unordered_map>
+#include <unordered_set>
 #include "Config.h"
 #include "ThreadFunctions.h"
 
@@ -73,8 +74,7 @@ public:
     bool deleteIfFound(char *location);
 
 private:
-    list<char *> tombstoneList;
-    // TODO: #include <unordered_set>
+    unordered_set<char *> tombstone;
     pthread_rwlock_t rwTombLock = PTHREAD_RWLOCK_INITIALIZER;
     // TODO/FILL: input age to avoid delete before inserted
     BloomFilter *graveFilter;
