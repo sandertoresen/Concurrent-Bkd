@@ -32,19 +32,20 @@ struct BulkLoadThread
     atomic<int> flag;
 };
 
-struct AtomicTreeElement
+/*struct AtomicTreeElement
 {
     // readers flag
     // atomic<int> readers = 0;
     atomic<bool> deleted = false;
     KdbTree *tree;
-};
+};*/
 
 struct AtomicUnorderedMapElement
 {
     atomic<int> readers = 0;
     atomic<bool> deleted = false;
-    unordered_map<long, AtomicTreeElement *> *readableTrees;
+    // unordered_map<long, AtomicTreeElement *> *readableTrees;
+    unordered_map<long, KdbTree *> *readableTrees;
 };
 
 void *_threadInserter(void *writerThread);

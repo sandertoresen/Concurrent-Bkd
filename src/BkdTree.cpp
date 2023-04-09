@@ -63,7 +63,7 @@ BkdTree::~BkdTree() // Destructor
     pthread_mutex_destroy(&smallBulkingLock);
 
     set<KdbTree *> deletedTrees;
-    set<AtomicTreeElement *> deletedTreeContainers;
+    // set<KdbTree *> deletedTreeContainers;
     for (int i = 0; i < MAX_BULKLOAD_LEVEL; i++)
     {
         if (globalWriteSmallTrees[i] != nullptr)
@@ -91,9 +91,9 @@ BkdTree::~BkdTree() // Destructor
         for (auto it = globalReadMap->readableTrees->begin(); it != globalReadMap->readableTrees->end();)
         {
             // TODO OBS we don't check for active readers, make this safe with scheduler
-            AtomicTreeElement *tmp = it->second;
-            deletedTrees.insert(tmp->tree);
-            deletedTreeContainers.insert(tmp);
+            KdbTree *tmp = it->second;
+            deletedTrees.insert(tmp);
+            // deletedTreeContainers.insert(tmp);
             it = globalReadMap->readableTrees->erase(it);
         }
         delete globalReadMap->readableTrees;
@@ -108,10 +108,10 @@ BkdTree::~BkdTree() // Destructor
             continue;
         for (auto it = deletedElement->readableTrees->begin(); it != deletedElement->readableTrees->end();)
         {
-            AtomicTreeElement *tmp = it->second;
-            deletedTrees.insert(tmp->tree);
+            KdbTree *tmp = it->second;
+            deletedTrees.insert(tmp);
 
-            deletedTreeContainers.insert(tmp);
+            // deletedTreeContainers.insert(tmp);
             it = deletedElement->readableTrees->erase(it);
         }
         delete deletedElement->readableTrees;
@@ -124,11 +124,11 @@ BkdTree::~BkdTree() // Destructor
     }
     deletedTrees.clear();
 
-    for (auto container : deletedTreeContainers)
+    /*for (auto container : deletedTreeContainers)
     {
         delete container;
     }
-    deletedTreeContainers.clear();
+    deletedTreeContainers.clear();*/
 
     for (auto location : tombstone)
     {
@@ -245,12 +245,12 @@ void BkdTree::_bulkloadTree()
     pthread_mutex_lock(&globalReadMapWriteLock);
     if (globalReadMap == nullptr)
     {
-        mapCopy->readableTrees = new unordered_map<long, AtomicTreeElement *>();
+        mapCopy->readableTrees = new unordered_map<long, KdbTree *>();
     }
     else
     {
         mapCopy->readableTrees = new unordered_map<long,
-                                                   AtomicTreeElement *>(*globalReadMap->readableTrees);
+                                                   KdbTree *>(*globalReadMap->readableTrees);
     }
 
     // for value in map: if value.id exists in mergeTreeList, delete it
@@ -262,12 +262,12 @@ void BkdTree::_bulkloadTree()
 
         if (globalReadMap != NULL)
         {
-            unordered_map<long, AtomicTreeElement *> *mapPtr = globalReadMap->readableTrees;
+            unordered_map<long, KdbTree *> *mapPtr = globalReadMap->readableTrees;
 
             auto itr = mapPtr->find(deleteTree->id);
             if (itr != mapPtr->end())
             {
-                AtomicTreeElement *treeContainer = itr->second;
+                KdbTree *treeContainer = itr->second;
                 printf("Delete treeId: %d\n", deleteTree->id);
                 treeContainer->deleted.store(true);
             }
@@ -281,9 +281,9 @@ void BkdTree::_bulkloadTree()
 
         it = mergeTreeList.erase(it);
     }
-    AtomicTreeElement *treeContainer = new AtomicTreeElement;
-    treeContainer->tree = tree;
-    mapCopy->readableTrees->insert(make_pair(tree->id, treeContainer));
+    // AtomicTreeElement *treeContainer = new AtomicTreeElement;
+    // treeContainer->tree = tree;
+    mapCopy->readableTrees->insert(make_pair(tree->id, tree));
 
     AtomicUnorderedMapElement *oldMap = globalReadMap;
     globalReadMap = mapCopy;

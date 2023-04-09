@@ -112,17 +112,19 @@ void Scheduler::deleteOldMaps()
 
         // For each map here delete them if flagged as deleted and have no readers..
         //  deleteMap->readableTrees
-        for (const auto &[_, value] : *deleteMap->readableTrees)
+        for (const auto &[_, kdbTree] : *deleteMap->readableTrees)
         {
-            if (!value->deleted.load())
+            if (!kdbTree->deleted.load())
             {
                 continue;
             }
 
-            if (deletedKdbTrees.find(value->tree->id) == deletedKdbTrees.end())
+            if (deletedKdbTrees.find(kdbTree->id) == deletedKdbTrees.end())
             {
-                KdbDestroyTree(value->tree);
-                deletedKdbTrees.insert(value->tree->id);
+                printf("Call delete on tree %d size: %d\n", kdbTree->id, kdbTree->size);
+
+                KdbDestroyTree(kdbTree);
+                deletedKdbTrees.insert(kdbTree->id);
             }
 
             bkdTree->schedulerDeletedMaps[i].store(nullptr);
@@ -308,12 +310,12 @@ void Scheduler::largeBulkloads(int selectedLevel)
     pthread_mutex_lock(&bkdTree->globalReadMapWriteLock);
     if (bkdTree->globalReadMap == nullptr)
     {
-        mapCopy->readableTrees = new unordered_map<long, AtomicTreeElement *>();
+        mapCopy->readableTrees = new unordered_map<long, KdbTree *>();
     }
     else
     {
         mapCopy->readableTrees = new unordered_map<long,
-                                                   AtomicTreeElement *>(*bkdTree->globalReadMap->readableTrees);
+                                                   KdbTree *>(*bkdTree->globalReadMap->readableTrees);
     }
 
     // exit(1);
@@ -325,12 +327,12 @@ void Scheduler::largeBulkloads(int selectedLevel)
         mapCopy->readableTrees->erase(deleteTree->id);
         if (bkdTree->globalReadMap != NULL)
         {
-            unordered_map<long, AtomicTreeElement *> *mapPtr = bkdTree->globalReadMap->readableTrees;
+            unordered_map<long, KdbTree *> *mapPtr = bkdTree->globalReadMap->readableTrees;
 
             auto itr = mapPtr->find(deleteTree->id);
             if (itr != mapPtr->end())
             {
-                AtomicTreeElement *treeContainer = itr->second;
+                KdbTree *treeContainer = itr->second;
                 treeContainer->deleted.store(true);
             }
             else
@@ -344,9 +346,7 @@ void Scheduler::largeBulkloads(int selectedLevel)
 
         it = mergeTreeList.erase(it);
     }
-    AtomicTreeElement *treeContainer = new AtomicTreeElement;
-    treeContainer->tree = tree;
-    mapCopy->readableTrees->insert(make_pair(tree->id, treeContainer));
+    mapCopy->readableTrees->insert(make_pair(tree->id, tree));
 
     AtomicUnorderedMapElement *oldMap = bkdTree->globalReadMap;
     bkdTree->globalReadMap = mapCopy;

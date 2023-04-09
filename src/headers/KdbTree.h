@@ -2,6 +2,7 @@
 #define KDB_TREE_H
 
 #include <list>
+#include <atomic>
 #include "Config.h"
 #include "MemoryStructures.h"
 
@@ -25,6 +26,7 @@ struct KdbTree
     int size = 0;
     int level;
     long id;
+    atomic<bool> deleted = false;
     KdbBranch *left;
     KdbBranch *right;
 

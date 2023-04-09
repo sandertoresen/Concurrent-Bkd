@@ -112,8 +112,8 @@ void *_windowLookup(void *readerThread)
         localMap->readers++;
         for (auto it = localMap->readableTrees->begin(); it != localMap->readableTrees->end(); it++)
         {
-            AtomicTreeElement *tmp = it->second;
-            KdbTreeRangeSearch(tmp->tree, query->window, query->results);
+            KdbTree *tmp = it->second;
+            KdbTreeRangeSearch(tmp, query->window, query->results);
         }
         localMap->readers--;
 

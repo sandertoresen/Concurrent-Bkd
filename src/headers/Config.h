@@ -11,7 +11,7 @@
 // should perform a test testing the effect of different thread buffer sizes.
 #define KDB_LEAF_SIZE 64
 
-#define THREAD_BUFFER_SIZE 1024
+#define THREAD_BUFFER_SIZE 128
 #define GLOBAL_B_CHUNK_SIZE 8
 #define GLOBAL_BUFFER_SIZE (GLOBAL_B_CHUNK_SIZE * THREAD_BUFFER_SIZE)
 
@@ -28,6 +28,6 @@
 #define BLOOM_SIZE 1000000
 #define BLOOM_NUM_HASHES 6
 
-#define TREES_CREATED 100
+#define TREES_CREATED 500
 
 #endif
