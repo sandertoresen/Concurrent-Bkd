@@ -222,8 +222,6 @@ void Scheduler::largeBulkloads(int selectedLevel)
     }
     else
     {
-        printf("we in large trees theretory\n");
-        exit(1);
         int treeCount = 0;
         for (auto it = bkdTree->globalWriteLargeTrees.begin(); it != bkdTree->globalWriteLargeTrees.end(); it++)
         {
@@ -291,7 +289,7 @@ void Scheduler::largeBulkloads(int selectedLevel)
     }
 
     int level = selectedLevel ? mergeTreeList.size() * selectedLevel : mergeTreeList.size();
-    if (level < bkdTree->largestLevel.load())
+    if (level > bkdTree->largestLevel.load())
     {
         bkdTree->largestLevel.store(level);
     }
