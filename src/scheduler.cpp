@@ -217,10 +217,8 @@ void Scheduler::largeBulkloads(int selectedLevel)
             it = bkdTree->globalWriteMediumTrees.erase(it); // Erase the value and update the iterator
             numNodesAdded++;
             numNodes = tmp->size;
-            printf("added tree %ld\n", tmp->id);
         }
         pthread_mutex_unlock(&bkdTree->mediumWriteTreesLock);
-        printf("Nr of large trees for bulking: %d numnodes%d\n", mergeTreeList.size(), numNodes);
     }
     else
     {
@@ -251,12 +249,10 @@ void Scheduler::largeBulkloads(int selectedLevel)
             size--;
         }
     }
-
-    DataNode *bloomValues = new DataNode[numNodes];
+    DataNode *bloomValues = new DataNode[numNodes * DIMENSIONS];
     int offset = 0;
-    for (auto itr = mergeTreeList.begin(); itr != mergeTreeList.end(); ++itr)
+    for (auto treePtr : mergeTreeList)
     {
-        KdbTree *treePtr = *itr;
         KdbTreeFetchNodes(treePtr, &bloomValues[offset]);
         offset += treePtr->size;
     }
@@ -299,6 +295,8 @@ void Scheduler::largeBulkloads(int selectedLevel)
     {
         bkdTree->largestLevel.store(level);
     }
+
+    printf("Started LARGER BULKLOAD of %d nodes!\n", numNodes);
     KdbTree *tree = KdbCreateTree(values, numNodes, generateUniqueId(bkdTree->treeId), level);
 
     // remove old nodes
