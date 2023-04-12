@@ -118,6 +118,10 @@ void KdbTreeRangeSearch(KdbTree *tree, float range[DIMENSIONS][2], std::list<Dat
 
 void _KdbBranchRangeSearch(KdbBranch *branch, float range[DIMENSIONS][2], int currentDimension, std::list<DataNode> &values)
 {
+    if (branch == nullptr)
+    {
+        return;
+    }
     if (branch->KdbLeafBuffer != nullptr)
     {
         for (int i = 0; i < branch->leafSize; i++)

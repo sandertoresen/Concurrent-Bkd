@@ -112,19 +112,19 @@ void Scheduler::deleteOldMaps()
 
         // For each map here delete them if flagged as deleted and have no readers..
         //  deleteMap->readableTrees
-        for (const auto &[_, kdbTree] : *deleteMap->readableTrees)
+        for (const auto &[treeId, kdbTree] : *deleteMap->readableTrees)
         {
             if (!kdbTree->deleted.load())
             {
                 continue;
             }
 
-            if (deletedKdbTrees.find(kdbTree->id) == deletedKdbTrees.end())
-            {
-                printf("Call delete on tree %d size: %d\n", kdbTree->id, kdbTree->size);
+            if (deletedKdbTrees.find(treeId) == deletedKdbTrees.end())
+            { // OBS used kdbTree->id earlier here
+                printf("Call delete on tree %d size: %d\n", treeId, kdbTree->size);
 
                 KdbDestroyTree(kdbTree);
-                deletedKdbTrees.insert(kdbTree->id);
+                deletedKdbTrees.insert(treeId);
             }
 
             bkdTree->schedulerDeletedMaps[i].store(nullptr);
