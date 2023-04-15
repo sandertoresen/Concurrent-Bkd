@@ -74,7 +74,6 @@ public:
    list<ScheduledThread *> writers;
    list<ScheduledThread *> readers;
    BulkLoadThread *bulkLoader = nullptr;
-   unordered_set<long> deletedKdbTrees;
 };
 
 void *_schedulerMainThread(void *scheduler);

@@ -59,6 +59,7 @@ void *_schedulerMainThread(void *scheduler)
         ScheduledThread *thread = new ScheduledThread;
         thread->flag = 1;
         thread->tree = sch->bkdTree;
+        thread->epoch = 0;
         pthread_create(&thread->thread, nullptr, _windowLookup, (void *)thread);
         sch->activeThreads++;
         sch->readers.push_back(thread);
@@ -98,14 +99,22 @@ void Scheduler::deleteOldMaps()
     // schedulerDeletedMaps[i]
     // bkdTree->schedulerDeletedMaps
 
+    // printf("epoch: %d\n", smallestEpoch);
+
     for (int i = 0; i < SCHEDULER_MAP_ARRAY_SIZE; i++)
     {
+        long smallestEpoch = readers.empty() ? -1 : readers.front()->epoch.load();
+        for (auto thread : readers)
+        {
+            long localReaderEpoch = thread->epoch.load();
+            smallestEpoch = localReaderEpoch < smallestEpoch ? localReaderEpoch : smallestEpoch;
+        }
         AtomicUnorderedMapElement *deleteMap = bkdTree->schedulerDeletedMaps[i].load();
         if (deleteMap == nullptr)
         {
             continue;
         }
-        if (deleteMap->readers.load() != 0)
+        if (deleteMap->epoch >= smallestEpoch && smallestEpoch != -1)
         {
             continue;
         }
@@ -114,20 +123,14 @@ void Scheduler::deleteOldMaps()
         //  deleteMap->readableTrees
         for (const auto &[treeId, kdbTree] : *deleteMap->readableTrees)
         {
-            if (!kdbTree->deleted.load())
+            // ISSUE:
+            if (deleteMap->epoch != kdbTree->epoch || deleteMap->epoch >= smallestEpoch)
             {
                 continue;
             }
 
-            if (deletedKdbTrees.find(treeId) == deletedKdbTrees.end())
-            { // OBS used kdbTree->id earlier here
-                printf("Call delete on tree %d size: %d\n", treeId, kdbTree->size);
-
-                KdbDestroyTree(kdbTree);
-                deletedKdbTrees.insert(treeId);
-            }
-
-            bkdTree->schedulerDeletedMaps[i].store(nullptr);
+            printf("Call delete on tree %d|%d size: %d\n", treeId, kdbTree->id, kdbTree->size);
+            KdbDestroyTree(kdbTree);
         }
         delete deleteMap->readableTrees;
         delete deleteMap;
@@ -303,15 +306,18 @@ void Scheduler::largeBulkloads(int selectedLevel)
     bkdTree->globalWriteLargeTrees.push_back(tree);
 
     AtomicUnorderedMapElement *mapCopy = new AtomicUnorderedMapElement;
+
     pthread_mutex_lock(&bkdTree->globalReadMapWriteLock);
-    if (bkdTree->globalReadMap == nullptr)
+    AtomicUnorderedMapElement *localReadMap = bkdTree->globalReadMap.load();
+    if (localReadMap == nullptr)
     {
         mapCopy->readableTrees = new unordered_map<long, KdbTree *>();
     }
     else
     {
+        mapCopy->epoch = generateUniqueId(bkdTree->epoch);
         mapCopy->readableTrees = new unordered_map<long,
-                                                   KdbTree *>(*bkdTree->globalReadMap->readableTrees);
+                                                   KdbTree *>(*localReadMap->readableTrees);
     }
 
     // exit(1);
@@ -321,15 +327,15 @@ void Scheduler::largeBulkloads(int selectedLevel)
         KdbTree *deleteTree = *it;
         printf("Deleting %ld from map copy\n", deleteTree->id);
         mapCopy->readableTrees->erase(deleteTree->id);
-        if (bkdTree->globalReadMap != NULL)
+        if (localReadMap != NULL)
         {
-            unordered_map<long, KdbTree *> *mapPtr = bkdTree->globalReadMap->readableTrees;
+            unordered_map<long, KdbTree *> *mapPtr = localReadMap->readableTrees;
 
             auto itr = mapPtr->find(deleteTree->id);
             if (itr != mapPtr->end())
             {
                 KdbTree *treeContainer = itr->second;
-                treeContainer->deleted.store(true);
+                treeContainer->epoch.store(mapCopy->epoch);
             }
             else
             {
@@ -345,7 +351,7 @@ void Scheduler::largeBulkloads(int selectedLevel)
     mapCopy->readableTrees->insert(make_pair(tree->id, tree));
 
     AtomicUnorderedMapElement *oldMap = bkdTree->globalReadMap;
-    bkdTree->globalReadMap = mapCopy;
+    bkdTree->globalReadMap.store(mapCopy);
     pthread_mutex_unlock(&bkdTree->globalReadMapWriteLock);
 
     if (oldMap != nullptr)

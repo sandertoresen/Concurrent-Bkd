@@ -60,11 +60,13 @@ public:
     list<KdbTree *> globalWriteLargeTrees;
 
     atomic<long> treeId = 0;
+    atomic<long> epoch = 0;
 
     // read values
 
     pthread_mutex_t globalReadMapWriteLock;
-    AtomicUnorderedMapElement *globalReadMap = nullptr;
+    atomic<bool> readMapExists = false;
+    atomic<AtomicUnorderedMapElement *> globalReadMap = nullptr;
 
     // TODO assert this never gets full..
     atomic<AtomicUnorderedMapElement *> schedulerDeletedMaps[SCHEDULER_MAP_ARRAY_SIZE];

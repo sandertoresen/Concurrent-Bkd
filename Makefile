@@ -18,7 +18,7 @@ OBJS=$(addprefix $(OBJDIR)/, $(PROGRAM_SRC:.cpp=.o))
 all: program programO2
 
 program: $(OBJS)
-	g++ -g -lpthread -o $@ $^
+	g++ -pg -lpthread -o $@ $^
 
 programO2:$(OBJS)
 	g++ -O2 -lpthread -o $@ $^

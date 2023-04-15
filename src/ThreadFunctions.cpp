@@ -54,13 +54,13 @@ void *_threadInserter(void *writerThread)
         // printf("Size: %d Set value at chunk %d\n", size, size / THREAD_BUFFER_SIZE);
         tree->globalChunkReady[size / THREAD_BUFFER_SIZE] = true;
 
-        // Tree now full -> handle data
         if (updatedSize < GLOBAL_BUFFER_SIZE)
         {
             continue;
         }
 
         bool moreWork = true;
+        // Wait for other threads
         while (moreWork)
         {
             moreWork = false;
@@ -95,7 +95,6 @@ void *_windowLookup(void *readerThread)
 {
 
     ScheduledThread *thread = (ScheduledThread *)readerThread;
-
     BkdTree *tree = thread->tree;
 
     while (thread->flag.load() == 1)
@@ -103,19 +102,22 @@ void *_windowLookup(void *readerThread)
         auto start = chrono::high_resolution_clock::now();
         WindowQuery *query = tree->API->fetchWindowQuery();
 
-        // get local pointer to data
-        AtomicUnorderedMapElement *localMap = tree->globalReadMap;
-        if (localMap == nullptr)
+        if (!tree->readMapExists.load())
         {
             continue;
         }
-        localMap->readers++;
-        for (auto it = localMap->readableTrees->begin(); it != localMap->readableTrees->end(); it++)
+
+        AtomicUnorderedMapElement *localMap = tree->globalReadMap.load();
+        printf("My new epoch: %d\n", localMap->epoch.load());
+        thread->epoch.store(localMap->epoch);
+
+        for (const auto &[treeId, kdbTree] : *localMap->readableTrees)
         {
-            KdbTree *tmp = it->second;
-            KdbTreeRangeSearch(tmp, query->window, query->results);
+            printf("Reading tree: %d|%d\n", kdbTree->id, treeId);
+            KdbTreeRangeSearch(kdbTree, query->window, query->results);
         }
-        localMap->readers--;
+
+        localMap->readers.fetch_sub(1);
 
         auto stop = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::duration<double>>(stop - start);

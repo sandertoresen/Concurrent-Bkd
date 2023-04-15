@@ -26,7 +26,7 @@ struct KdbTree
     int size = 0;
     int level;
     long id;
-    atomic<bool> deleted = false;
+    atomic<long> epoch = -1;
     KdbBranch *left;
     KdbBranch *right;
 

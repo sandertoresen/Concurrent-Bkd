@@ -23,6 +23,7 @@ struct ScheduledThread
     pthread_t thread;
     BkdTree *tree;
     atomic<int> flag;
+    atomic<long> epoch = 0;
 };
 
 struct BulkLoadThread
@@ -44,6 +45,7 @@ struct AtomicUnorderedMapElement
 {
     atomic<int> readers = 0;
     atomic<bool> deleted = false;
+    atomic<long> epoch = 0;
     // unordered_map<long, AtomicTreeElement *> *readableTrees;
     unordered_map<long, KdbTree *> *readableTrees;
 };
