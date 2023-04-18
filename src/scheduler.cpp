@@ -211,6 +211,7 @@ void Scheduler::largeBulkloads(int selectedLevel)
         int size = bkdTree->globalWriteMediumTrees.size();
         if (size < LARGE_BULKLOAD_SIZE)
         {
+            pthread_mutex_unlock(&bkdTree->mediumWriteTreesLock);
             delete mergeTreeList;
             return;
         }
@@ -234,6 +235,7 @@ void Scheduler::largeBulkloads(int selectedLevel)
     }
     else
     {
+        printf("I am running larges bulkload!!\n\n\n");
         int numNodesAdded = 0;
         for (auto it = bkdTree->globalWriteLargeTrees.begin(); it != bkdTree->globalWriteLargeTrees.end(); it++)
         {
