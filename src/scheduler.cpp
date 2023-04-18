@@ -72,10 +72,10 @@ void *_schedulerMainThread(void *scheduler)
         sch->bulkThread->scheduler = sch;
         pthread_create(&sch->bulkThread->thread, nullptr, _performLargerBulkLoad, (void *)sch->bulkThread);
     }
-
     while (running)
     {
         int currentCount = sch->bkdTree->treeId.load();
+
         if (sch->bkdTree->treeId.load() > TREES_CREATED)
         {
             printf("Got %d trees\n", sch->bkdTree->treeId.load());
@@ -83,7 +83,7 @@ void *_schedulerMainThread(void *scheduler)
             break;
         }
 
-        while (currentCount + 2 > sch->bkdTree->treeId.load())
+        while (currentCount + EPOCH_WAIT_NUM > sch->bkdTree->treeId.load())
         {
             sched_yield();
         }
@@ -96,7 +96,7 @@ void *_schedulerMainThread(void *scheduler)
     // cleanup old trees/scheduler maps..
 
     // Simulate workflow by changing API->delay
-    return NULL;
+    return nullptr;
 }
 
 void Scheduler::deleteOldMaps()
@@ -209,31 +209,32 @@ void Scheduler::largeBulkloads(int selectedLevel)
     {
         pthread_mutex_lock(&bkdTree->mediumWriteTreesLock);
         int size = bkdTree->globalWriteMediumTrees.size();
-        int largestPowerOf2 = pow(2, floor(log2(size))); // largest power of 2 less than or equal to size
-        if (largestPowerOf2 < 2)
+        if (size < LARGE_BULKLOAD_SIZE)
         {
-            pthread_mutex_unlock(&bkdTree->mediumWriteTreesLock);
+            delete mergeTreeList;
             return;
         }
-        if (largestPowerOf2 > 2)
-        {
-            largestPowerOf2 = LARGEST_BULKLOAD_CAP;
-        }
+
         int numNodesAdded = 0;
         auto it = bkdTree->globalWriteMediumTrees.begin();
-        while (it != bkdTree->globalWriteMediumTrees.end() && numNodesAdded < largestPowerOf2)
+
+        while (it != bkdTree->globalWriteMediumTrees.end())
         {
             KdbTree *tmp = *it;
             mergeTreeList->push_back(tmp);
             it = bkdTree->globalWriteMediumTrees.erase(it); // Erase the value and update the iterator
-            numNodesAdded++;
             numNodes = tmp->size;
+            numNodesAdded++;
+            if (numNodesAdded == LARGE_BULKLOAD_SIZE)
+            {
+                break;
+            }
         }
         pthread_mutex_unlock(&bkdTree->mediumWriteTreesLock);
     }
     else
     {
-        int treeCount = 0;
+        int numNodesAdded = 0;
         for (auto it = bkdTree->globalWriteLargeTrees.begin(); it != bkdTree->globalWriteLargeTrees.end(); it++)
         {
             KdbTree *tmp = *it;
@@ -241,25 +242,18 @@ void Scheduler::largeBulkloads(int selectedLevel)
             {
                 mergeTreeList->push_back(tmp);
                 numNodes += tmp->size;
-                treeCount++;
+                numNodesAdded++;
+
+                if (numNodesAdded == LARGE_BULKLOAD_SIZE)
+                {
+                    break;
+                }
             }
         }
-        int size = mergeTreeList->size();
-        int largestPowerOf2 = pow(2, floor(log2(size)));
-        if (largestPowerOf2 < 2)
+        if (numNodesAdded != LARGE_BULKLOAD_SIZE)
         {
+            delete mergeTreeList;
             return;
-        }
-        if (largestPowerOf2 > 2)
-        {
-            largestPowerOf2 = LARGEST_BULKLOAD_CAP;
-        }
-        while (size > largestPowerOf2)
-        {
-            KdbTree *tmp = mergeTreeList->back();
-            mergeTreeList->pop_back();
-            numNodes -= tmp->size;
-            size--;
         }
 
         for (auto deletedTree : *mergeTreeList)
@@ -270,10 +264,10 @@ void Scheduler::largeBulkloads(int selectedLevel)
     printf("Nr nodes: %d\n", numNodes);
     DataNode *bloomValues = new DataNode[numNodes * DIMENSIONS];
     int offset = 0;
-    for (auto treePtr : *mergeTreeList)
+    for (auto kdbTree : *mergeTreeList)
     {
-        KdbTreeFetchNodes(treePtr, &bloomValues[offset]);
-        offset += treePtr->size;
+        KdbTreeFetchNodes(kdbTree, &bloomValues[offset]);
+        offset += kdbTree->size;
     }
 
     int updatedNodes = numNodes;
@@ -287,6 +281,7 @@ void Scheduler::largeBulkloads(int selectedLevel)
     }
 
     // Create new DataNode *array without any deleted nodes
+    printf("Large bulkload nr of values %d, total allcoate:%d\n", updatedNodes, updatedNodes * DIMENSIONS);
     DataNode *values = new DataNode[updatedNodes * DIMENSIONS];
     int j = 0;
     for (int i = 0; i < numNodes; i++)
@@ -306,10 +301,11 @@ void Scheduler::largeBulkloads(int selectedLevel)
         if (d != 0) // paste over tree data
             memcpy(&values[d * numNodes], &values[0], sizeof(DataNode) * numNodes);
 
-        std::sort(&values[d * numNodes], &values[d * numNodes + numNodes], dataNodeCMP(d));
+        sort(&values[d * numNodes], &values[d * numNodes + numNodes], dataNodeCMP(d));
     }
 
     int level = selectedLevel ? mergeTreeList->size() * selectedLevel : mergeTreeList->size();
+    printf("level is: %d based on selectedLevel(%d) * list size(%d)\n", level, selectedLevel, mergeTreeList->size());
     if (level > bkdTree->largestLevel.load())
     {
         bkdTree->largestLevel.store(level);
