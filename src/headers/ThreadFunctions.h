@@ -43,10 +43,8 @@ struct BulkLoadThread
 
 struct AtomicUnorderedMapElement
 {
-    atomic<int> readers = 0;
-    atomic<bool> deleted = false;
     atomic<long> epoch = 0;
-    // unordered_map<long, AtomicTreeElement *> *readableTrees;
+    list<KdbTree *> *oldTrees = nullptr;
     unordered_map<long, KdbTree *> *readableTrees;
 };
 

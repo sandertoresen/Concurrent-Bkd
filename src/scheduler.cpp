@@ -30,9 +30,9 @@ Scheduler::~Scheduler()
         printf("OBS readers not deleted!\n");
     }
 
-    if (bulkLoader != nullptr)
+    if (bulkThread != nullptr)
     {
-        printf("OBS bulkloader not deleted!\n");
+        printf("OBS bulkThread not deleted!\n");
     }
 
     delete bkdTree;
@@ -67,14 +67,15 @@ void *_schedulerMainThread(void *scheduler)
 
     if (BULK_THREAD)
     {
-        BulkLoadThread *bulkThread = new BulkLoadThread;
-        bulkThread->flag = 1;
-        bulkThread->scheduler = sch;
-        pthread_create(&bulkThread->thread, nullptr, _performLargerBulkLoad, (void *)bulkThread);
+        sch->bulkThread = new BulkLoadThread;
+        sch->bulkThread->flag = 1;
+        sch->bulkThread->scheduler = sch;
+        pthread_create(&sch->bulkThread->thread, nullptr, _performLargerBulkLoad, (void *)sch->bulkThread);
     }
 
     while (running)
     {
+        int currentCount = sch->bkdTree->treeId.load();
         if (sch->bkdTree->treeId.load() > TREES_CREATED)
         {
             printf("Got %d trees\n", sch->bkdTree->treeId.load());
@@ -82,6 +83,10 @@ void *_schedulerMainThread(void *scheduler)
             break;
         }
 
+        while (currentCount + 2 > sch->bkdTree->treeId.load())
+        {
+            sched_yield();
+        }
         sch->deleteOldMaps();
     }
     // check performance and if more threads are needed(?)
@@ -121,17 +126,16 @@ void Scheduler::deleteOldMaps()
 
         // For each map here delete them if flagged as deleted and have no readers..
         //  deleteMap->readableTrees
-        for (const auto &[treeId, kdbTree] : *deleteMap->readableTrees)
+        // Next store values based on epoch
+        if (deleteMap->oldTrees != nullptr)
         {
-            // ISSUE:
-            if (deleteMap->epoch != kdbTree->epoch || deleteMap->epoch >= smallestEpoch)
+            for (auto oldTree : *deleteMap->oldTrees)
             {
-                continue;
+                // printf("Call delete on tree %d size: %d\n", oldTree->id, oldTree->size);
+                KdbDestroyTree(oldTree);
             }
-
-            printf("Call delete on tree %d|%d size: %d\n", treeId, kdbTree->id, kdbTree->size);
-            KdbDestroyTree(kdbTree);
         }
+        delete deleteMap->oldTrees;
         delete deleteMap->readableTrees;
         delete deleteMap;
 
@@ -156,10 +160,10 @@ void Scheduler::shutdown()
     }
 
     // TODO: shutdown large bulkload thread
-    if (bulkLoader != nullptr)
+    if (bulkThread != nullptr)
     {
-        printf("Shut down bulkloader\n");
-        bulkLoader->flag.store(0);
+        printf("Shut down bulkThread\n");
+        bulkThread->flag.store(0);
     }
 
     for (auto it = writers.begin(); it != writers.end();)
@@ -183,14 +187,14 @@ void Scheduler::shutdown()
         delete t;
         it = readers.erase(it);
     }
-    if (bulkLoader != nullptr)
+    if (bulkThread != nullptr)
     {
-        while (bulkLoader->flag.load() != -1)
+        while (bulkThread->flag.load() != -1)
         {
         }
-        pthread_join(bulkLoader->thread, nullptr);
-        delete bulkLoader;
-        bulkLoader = nullptr;
+        pthread_join(bulkThread->thread, nullptr);
+        delete bulkThread;
+        bulkThread = nullptr;
     }
     printf("threads erased!\n");
 }
@@ -200,7 +204,7 @@ void Scheduler::largeBulkloads(int selectedLevel)
     // TODO/FILL: include numTrees to know how many trees of selected level should be bulkloaded(?)
 
     int numNodes = 0;
-    list<KdbTree *> mergeTreeList;
+    list<KdbTree *> *mergeTreeList = new list<KdbTree *>;
     if (selectedLevel == 0)
     {
         pthread_mutex_lock(&bkdTree->mediumWriteTreesLock);
@@ -211,12 +215,16 @@ void Scheduler::largeBulkloads(int selectedLevel)
             pthread_mutex_unlock(&bkdTree->mediumWriteTreesLock);
             return;
         }
+        if (largestPowerOf2 > 2)
+        {
+            largestPowerOf2 = LARGEST_BULKLOAD_CAP;
+        }
         int numNodesAdded = 0;
         auto it = bkdTree->globalWriteMediumTrees.begin();
         while (it != bkdTree->globalWriteMediumTrees.end() && numNodesAdded < largestPowerOf2)
         {
             KdbTree *tmp = *it;
-            mergeTreeList.push_back(tmp);
+            mergeTreeList->push_back(tmp);
             it = bkdTree->globalWriteMediumTrees.erase(it); // Erase the value and update the iterator
             numNodesAdded++;
             numNodes = tmp->size;
@@ -231,28 +239,38 @@ void Scheduler::largeBulkloads(int selectedLevel)
             KdbTree *tmp = *it;
             if (tmp->level == selectedLevel)
             {
-                mergeTreeList.push_back(tmp);
+                mergeTreeList->push_back(tmp);
                 numNodes += tmp->size;
                 treeCount++;
             }
         }
-        int size = mergeTreeList.size();
+        int size = mergeTreeList->size();
         int largestPowerOf2 = pow(2, floor(log2(size)));
         if (largestPowerOf2 < 2)
         {
             return;
         }
+        if (largestPowerOf2 > 2)
+        {
+            largestPowerOf2 = LARGEST_BULKLOAD_CAP;
+        }
         while (size > largestPowerOf2)
         {
-            KdbTree *tmp = mergeTreeList.back();
-            mergeTreeList.pop_back();
+            KdbTree *tmp = mergeTreeList->back();
+            mergeTreeList->pop_back();
             numNodes -= tmp->size;
             size--;
         }
+
+        for (auto deletedTree : *mergeTreeList)
+        {
+            bkdTree->globalWriteLargeTrees.remove(deletedTree);
+        }
     }
+    printf("Nr nodes: %d\n", numNodes);
     DataNode *bloomValues = new DataNode[numNodes * DIMENSIONS];
     int offset = 0;
-    for (auto treePtr : mergeTreeList)
+    for (auto treePtr : *mergeTreeList)
     {
         KdbTreeFetchNodes(treePtr, &bloomValues[offset]);
         offset += treePtr->size;
@@ -291,7 +309,7 @@ void Scheduler::largeBulkloads(int selectedLevel)
         std::sort(&values[d * numNodes], &values[d * numNodes + numNodes], dataNodeCMP(d));
     }
 
-    int level = selectedLevel ? mergeTreeList.size() * selectedLevel : mergeTreeList.size();
+    int level = selectedLevel ? mergeTreeList->size() * selectedLevel : mergeTreeList->size();
     if (level > bkdTree->largestLevel.load())
     {
         bkdTree->largestLevel.store(level);
@@ -304,82 +322,6 @@ void Scheduler::largeBulkloads(int selectedLevel)
     delete[] values;
 
     bkdTree->globalWriteLargeTrees.push_back(tree);
-
-    AtomicUnorderedMapElement *mapCopy = new AtomicUnorderedMapElement;
-
-    pthread_mutex_lock(&bkdTree->globalReadMapWriteLock);
-    AtomicUnorderedMapElement *localReadMap = bkdTree->globalReadMap.load();
-    if (localReadMap == nullptr)
-    {
-        mapCopy->readableTrees = new unordered_map<long, KdbTree *>();
-    }
-    else
-    {
-        mapCopy->epoch = generateUniqueId(bkdTree->epoch);
-        mapCopy->readableTrees = new unordered_map<long,
-                                                   KdbTree *>(*localReadMap->readableTrees);
-    }
-
-    // exit(1);
-    // for value in map: if value.id exists in mergeTreeList, delete it
-    for (auto it = mergeTreeList.begin(); it != mergeTreeList.end();)
-    {
-        KdbTree *deleteTree = *it;
-        printf("Deleting %ld from map copy\n", deleteTree->id);
-        mapCopy->readableTrees->erase(deleteTree->id);
-        if (localReadMap != NULL)
-        {
-            unordered_map<long, KdbTree *> *mapPtr = localReadMap->readableTrees;
-
-            auto itr = mapPtr->find(deleteTree->id);
-            if (itr != mapPtr->end())
-            {
-                KdbTree *treeContainer = itr->second;
-                treeContainer->epoch.store(mapCopy->epoch);
-            }
-            else
-            {
-                // OBS didnt find tree to delete??
-                printf("|large bulkload|DIDN'T FIND TREE TO DELETE SHOULDNT BE POSSIBLE\n");
-                printf("Didn't find tree %ld\n", deleteTree->id);
-                exit(-1);
-            }
-        }
-
-        it = mergeTreeList.erase(it);
-    }
-    mapCopy->readableTrees->insert(make_pair(tree->id, tree));
-
-    AtomicUnorderedMapElement *oldMap = bkdTree->globalReadMap;
-    bkdTree->globalReadMap.store(mapCopy);
-    pthread_mutex_unlock(&bkdTree->globalReadMapWriteLock);
-
-    if (oldMap != nullptr)
-    {
-        oldMap->deleted.store(true);
-        while (true)
-        {
-            int index = -1;
-            for (int i = 0; i < SCHEDULER_MAP_ARRAY_SIZE; i++)
-            {
-                AtomicUnorderedMapElement *ptr = bkdTree->schedulerDeletedMaps[i].load();
-                if (ptr == nullptr)
-                {
-                    index = i;
-                    break;
-                }
-            }
-            AtomicUnorderedMapElement *expected = nullptr;
-            if (index != -1 && bkdTree->schedulerDeletedMaps[index].compare_exchange_strong(expected, oldMap))
-            {
-                break;
-            }
-            else if (index == -1)
-            {
-                printf("ERROR ARRAY IS FULL BECAUSE OF LACK OF SCHEDULED!\n\n\n");
-                exit(-1);
-            }
-        }
-    }
+    bkdTree->updateReadTrees(mergeTreeList, tree);
     printf("Completed large bulkload\n");
 }

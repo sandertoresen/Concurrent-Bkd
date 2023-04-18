@@ -102,22 +102,20 @@ void *_windowLookup(void *readerThread)
         auto start = chrono::high_resolution_clock::now();
         WindowQuery *query = tree->API->fetchWindowQuery();
 
-        if (!tree->readMapExists.load())
+        AtomicUnorderedMapElement *localMap = tree->globalReadMap.load();
+
+        if (localMap == nullptr)
         {
             continue;
         }
-
-        AtomicUnorderedMapElement *localMap = tree->globalReadMap.load();
-        printf("My new epoch: %d\n", localMap->epoch.load());
+        // printf("My new epoch: %d\n", localMap->epoch.load());
         thread->epoch.store(localMap->epoch);
 
         for (const auto &[treeId, kdbTree] : *localMap->readableTrees)
         {
-            printf("Reading tree: %d|%d\n", kdbTree->id, treeId);
+            // printf("Reading tree: %d|%d\n", kdbTree->id, treeId);
             KdbTreeRangeSearch(kdbTree, query->window, query->results);
         }
-
-        localMap->readers.fetch_sub(1);
 
         auto stop = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::duration<double>>(stop - start);
@@ -137,7 +135,7 @@ void *_windowLookup(void *readerThread)
             }
         }
 
-        // printf("Got %d size query\n", query->results.size());
+        printf("Got %d size query\n", query->results.size());
         query->results.clear();
 
         delete query;

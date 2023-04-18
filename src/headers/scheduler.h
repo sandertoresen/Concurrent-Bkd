@@ -73,7 +73,7 @@ public:
 
    list<ScheduledThread *> writers;
    list<ScheduledThread *> readers;
-   BulkLoadThread *bulkLoader = nullptr;
+   BulkLoadThread *bulkThread = nullptr;
 };
 
 void *_schedulerMainThread(void *scheduler);

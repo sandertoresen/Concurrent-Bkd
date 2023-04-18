@@ -40,6 +40,7 @@ public:
     int insert(DataNode *values);
     void deleteNode(char *location);
     void _bulkloadTree();
+    void updateReadTrees(list<KdbTree *> *mergeTreeList, KdbTree *tree);
 
     MockApi *API = nullptr;
     DataNode *globalMemory = nullptr;
@@ -65,7 +66,6 @@ public:
     // read values
 
     pthread_mutex_t globalReadMapWriteLock;
-    atomic<bool> readMapExists = false;
     atomic<AtomicUnorderedMapElement *> globalReadMap = nullptr;
 
     // TODO assert this never gets full..

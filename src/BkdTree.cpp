@@ -151,7 +151,7 @@ void BkdTree::_bulkloadTree()
 
     pthread_mutex_lock(&smallBulkingLock);
 
-    list<KdbTree *> mergeTreeList;
+    list<KdbTree *> *mergeTreeList = new list<KdbTree *>;
     int treeArrayLocation = 0;
 
     for (int currentTree = 0; currentTree < MAX_BULKLOAD_LEVEL; currentTree++)
@@ -173,7 +173,7 @@ void BkdTree::_bulkloadTree()
 
         for (int previousTree = 0; previousTree < endTree; previousTree++)
         {
-            mergeTreeList.push_back(globalWriteSmallTrees[previousTree]);
+            mergeTreeList->push_back(globalWriteSmallTrees[previousTree]);
             numNodes += globalWriteSmallTrees[previousTree]->size;
             globalWriteSmallTrees[previousTree] = nullptr;
 
@@ -197,7 +197,7 @@ void BkdTree::_bulkloadTree()
 
     int offset = localMemorySize + localDiskSize;
 
-    for (auto kdbTree : mergeTreeList)
+    for (auto kdbTree : *mergeTreeList)
     {
         KdbTreeFetchNodes(kdbTree, &values[offset]);
         offset += kdbTree->size;
@@ -219,102 +219,13 @@ void BkdTree::_bulkloadTree()
     }
     else
     { // store large tree
-        printf("Large tree!\n");
         pthread_mutex_lock(&mediumWriteTreesLock);
         globalWriteMediumTrees.push_back(tree);
         pthread_mutex_unlock(&mediumWriteTreesLock);
     }
 
-    /*
-    This section is responsible for:
-    - RCU updating AtomicUnorderedMap
-        ->  removing old trees from mapCopy(pointer and iterator)
-    - Sending the removed values to scheduler so the scheduler can deal with it
-    */
+    updateReadTrees(mergeTreeList, tree);
 
-    // TODO: use writelock if multiple trees can update this section Create new map, rcu update
-    // IDEA: have a large trees scheduler, largetrees/later structures should never be blocked,
-    // but if it schedules the changes, bulkload could be responisble for inserting them
-    //  --> this is to avoid bulkloading getting locked..
-    AtomicUnorderedMapElement *mapCopy = new AtomicUnorderedMapElement;
-
-    pthread_mutex_lock(&globalReadMapWriteLock);
-    AtomicUnorderedMapElement *localReadMap = globalReadMap;
-    if (localReadMap == nullptr)
-    {
-        mapCopy->readableTrees = new unordered_map<long, KdbTree *>();
-    }
-    else
-    {
-        mapCopy->epoch.store(generateUniqueId(epoch));
-
-        printf("generated epoch: %d\n", mapCopy->epoch.load());
-        mapCopy->readableTrees = new unordered_map<long,
-                                                   KdbTree *>(*localReadMap->readableTrees);
-    }
-
-    // for value in map: if value.id exists in mergeTreeList, delete it
-    for (auto it = mergeTreeList.begin(); it != mergeTreeList.end();)
-    {
-        KdbTree *deleteTree = *it;
-
-        mapCopy->readableTrees->erase(deleteTree->id);
-
-        if (localReadMap != nullptr)
-        {
-            unordered_map<long, KdbTree *> *mapPtr = localReadMap->readableTrees;
-
-            auto itr = mapPtr->find(deleteTree->id);
-            if (itr != mapPtr->end())
-            {
-                KdbTree *kdbTree = itr->second;
-                printf("Delete treeId: %d\n", deleteTree->id);
-                kdbTree->epoch.store(mapCopy->epoch);
-            }
-            else
-            {
-                printf("|small bulkload|ERROR DIDN'T FIND TREE TO DELETE SHOULDNT BE POSSIBLE\n");
-                exit(-1);
-            }
-        }
-
-        it = mergeTreeList.erase(it);
-    }
-
-    mapCopy->readableTrees->insert(make_pair(tree->id, tree));
-
-    AtomicUnorderedMapElement *oldMap = localReadMap;
-    readMapExists.store(true);
-    globalReadMap.store(mapCopy);
-    pthread_mutex_unlock(&globalReadMapWriteLock);
-
-    if (oldMap != nullptr)
-    {
-        oldMap->deleted.store(true);
-        while (true)
-        {
-            int index = -1;
-            for (int i = 0; i < SCHEDULER_MAP_ARRAY_SIZE; i++)
-            {
-                AtomicUnorderedMapElement *ptr = schedulerDeletedMaps[i].load();
-                if (ptr == nullptr)
-                {
-                    index = i;
-                    break;
-                }
-            }
-            AtomicUnorderedMapElement *expected = nullptr;
-            if (index != -1 && schedulerDeletedMaps[index].compare_exchange_strong(expected, oldMap))
-            {
-                break;
-            }
-            else if (index == -1)
-            {
-                printf("ERROR ARRAY IS FULL BECAUSE OF LACK OF SCHEDULED!\n\n\n");
-                exit(-1);
-            }
-        }
-    }
     pthread_mutex_unlock(&smallBulkingLock);
 }
 
@@ -357,4 +268,73 @@ bool BkdTree::deleteIfFound(char *location)
         pthread_rwlock_unlock(&rwTombLock);
     }
     return false;
+}
+
+void BkdTree::updateReadTrees(list<KdbTree *> *mergeTreeList, KdbTree *tree)
+{
+    // IDEA: have a large trees scheduler, largetrees/later structures should never be blocked,
+    // but if it schedules the changes, bulkload could be responisble for inserting them
+    //  --> this is to avoid bulkloading getting locked..
+    AtomicUnorderedMapElement *mapCopy = new AtomicUnorderedMapElement;
+
+    pthread_mutex_lock(&globalReadMapWriteLock);
+    AtomicUnorderedMapElement *localReadMap = globalReadMap;
+    if (localReadMap == nullptr)
+    {
+        mapCopy->readableTrees = new unordered_map<long, KdbTree *>();
+    }
+    else
+    {
+        mapCopy->epoch.store(generateUniqueId(epoch));
+        printf("generated epoch: %d\n", mapCopy->epoch.load());
+        mapCopy->readableTrees = new unordered_map<long,
+                                                   KdbTree *>(*localReadMap->readableTrees);
+    }
+
+    for (auto oldTree : *mergeTreeList)
+    {
+        mapCopy->readableTrees->erase(oldTree->id);
+    }
+
+    mapCopy->readableTrees->insert(make_pair(tree->id, tree));
+
+    globalReadMap.store(mapCopy);
+    pthread_mutex_unlock(&globalReadMapWriteLock);
+
+    AtomicUnorderedMapElement *oldMap = localReadMap;
+    if (oldMap == nullptr)
+    {
+        if (mergeTreeList->size())
+        {
+            printf("Whaat list contains %d nodes\n", mergeTreeList->size());
+            exit(1);
+        }
+        delete mergeTreeList;
+        return;
+    }
+
+    oldMap->oldTrees = mergeTreeList;
+    while (true)
+    {
+        int index = -1;
+        for (int i = 0; i < SCHEDULER_MAP_ARRAY_SIZE; i++)
+        {
+            AtomicUnorderedMapElement *ptr = schedulerDeletedMaps[i].load();
+            if (ptr == nullptr)
+            {
+                index = i;
+                break;
+            }
+        }
+        AtomicUnorderedMapElement *expected = nullptr;
+        if (index != -1 && schedulerDeletedMaps[index].compare_exchange_strong(expected, oldMap))
+        {
+            break;
+        }
+        else if (index == -1)
+        {
+            printf("ERROR ARRAY IS FULL BECAUSE OF LACK OF SCHEDULED!\n\n\n");
+            exit(-1);
+        }
+    }
 }
