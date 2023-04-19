@@ -42,6 +42,7 @@ public:
     void _bulkloadTree();
     void updateReadTrees(list<KdbTree *> *mergeTreeList, KdbTree *tree);
 
+    atomic<int> bulkLoadQueue = 0;
     MockApi *API = nullptr;
     DataNode *globalMemory = nullptr;
     atomic<int> globalMemorySize;

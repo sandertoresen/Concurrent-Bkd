@@ -134,8 +134,8 @@ void *_windowLookup(void *readerThread)
                 it++;
             }
         }
-
-        printf("Got %d size query\n", query->results.size());
+        printf("From %d trees|time:%fs|\n\n", localMap->readableTrees->size(), duration.count());
+        // printf("Got %d size query\n", query->results.size());
         query->results.clear();
 
         delete query;

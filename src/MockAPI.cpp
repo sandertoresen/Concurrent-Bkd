@@ -40,8 +40,8 @@ MockApi::MockApi(int mockSize)
 
 DataNode *MockApi::fetchRandom(DataNode *node)
 {
-    node->cordinates[0] = __randomFloat(1000);
-    node->cordinates[1] = __randomFloat(1000);
+    node->cordinates[0] = __randomFloat(100000);
+    node->cordinates[1] = __randomFloat(100000);
     __randomLocation(node->location);
     auto start_time = std::chrono::steady_clock::now();
     while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start_time).count() < delay)
@@ -70,8 +70,8 @@ WindowQuery *MockApi::fetchWindowQuery()
     WindowQuery *query = new WindowQuery;
     for (int d = 0; d < DIMENSIONS; d++)
     {
-        float a = 0;    //__randomFloat(1000);
-        float b = 1000; //__randomFloat(1000);
+        float a = 0;      //__randomFloat(1000);
+        float b = 100000; //__randomFloat(1000);
         if (a > b)
         {
             query->window[d][0] = b;

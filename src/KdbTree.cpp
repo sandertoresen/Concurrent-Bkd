@@ -364,7 +364,7 @@ KdbTree *KdbCreateTree(DataNode *values, int numNodes, long treeId, int level)
     tree->size = numNodes;
     tree->id = treeId;
     tree->level = level;
-    printf("Create tree: %d\n", treeId);
+    // printf("Create tree: %d\n", treeId);
 
     int leftMiddleIndex = numNodes / 2 - !(numNodes % 2);
     int rightMiddleIndex = leftMiddleIndex + 1;
@@ -430,7 +430,7 @@ void KdbDestroyTree(KdbTree *tree)
     {
         return;
     }
-    printf("I am destroying %d tree\n", tree->id);
+    // printf("I am destroying %d tree\n", tree->id);
     // tree->leafList
 
     _KdbDestroyBranch(tree->left);

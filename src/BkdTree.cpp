@@ -149,6 +149,7 @@ void BkdTree::_bulkloadTree()
 
     int numNodes = localMemorySize + localDiskSize;
 
+    // printf("Bulkload queue: %d\n", bulkLoadQueue.fetch_add(1));
     pthread_mutex_lock(&smallBulkingLock);
 
     list<KdbTree *> *mergeTreeList = new list<KdbTree *>;
@@ -227,6 +228,7 @@ void BkdTree::_bulkloadTree()
     updateReadTrees(mergeTreeList, tree);
 
     pthread_mutex_unlock(&smallBulkingLock);
+    bulkLoadQueue.fetch_sub(1);
 }
 
 void BkdTree::deleteValue(char *location)
@@ -304,11 +306,6 @@ void BkdTree::updateReadTrees(list<KdbTree *> *mergeTreeList, KdbTree *tree)
     AtomicUnorderedMapElement *oldMap = localReadMap;
     if (oldMap == nullptr)
     {
-        if (mergeTreeList->size())
-        {
-            printf("Whaat list contains %d nodes\n", mergeTreeList->size());
-            exit(1);
-        }
         delete mergeTreeList;
         return;
     }

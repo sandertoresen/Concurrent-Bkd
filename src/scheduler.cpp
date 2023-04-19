@@ -235,7 +235,6 @@ void Scheduler::largeBulkloads(int selectedLevel)
     }
     else
     {
-        printf("I am running larges bulkload!!\n\n\n");
         int numNodesAdded = 0;
         for (auto it = bkdTree->globalWriteLargeTrees.begin(); it != bkdTree->globalWriteLargeTrees.end(); it++)
         {
@@ -263,7 +262,6 @@ void Scheduler::largeBulkloads(int selectedLevel)
             bkdTree->globalWriteLargeTrees.remove(deletedTree);
         }
     }
-    printf("Nr nodes: %d\n", numNodes);
     DataNode *bloomValues = new DataNode[numNodes * DIMENSIONS];
     int offset = 0;
     for (auto kdbTree : *mergeTreeList)
@@ -283,7 +281,7 @@ void Scheduler::largeBulkloads(int selectedLevel)
     }
 
     // Create new DataNode *array without any deleted nodes
-    printf("Large bulkload nr of values %d, total allcoate:%d\n", updatedNodes, updatedNodes * DIMENSIONS);
+    // printf("Large bulkload nr of values %d, total allcoate:%d\n", updatedNodes, updatedNodes * DIMENSIONS);
     DataNode *values = new DataNode[updatedNodes * DIMENSIONS];
     int j = 0;
     for (int i = 0; i < numNodes; i++)
@@ -307,13 +305,11 @@ void Scheduler::largeBulkloads(int selectedLevel)
     }
 
     int level = selectedLevel ? mergeTreeList->size() * selectedLevel : mergeTreeList->size();
-    printf("level is: %d based on selectedLevel(%d) * list size(%d)\n", level, selectedLevel, mergeTreeList->size());
     if (level > bkdTree->largestLevel.load())
     {
         bkdTree->largestLevel.store(level);
     }
 
-    printf("Started LARGER BULKLOAD of %d nodes!\n", numNodes);
     KdbTree *tree = KdbCreateTree(values, numNodes, generateUniqueId(bkdTree->treeId), level);
 
     // remove old nodes
@@ -321,5 +317,4 @@ void Scheduler::largeBulkloads(int selectedLevel)
 
     bkdTree->globalWriteLargeTrees.push_back(tree);
     bkdTree->updateReadTrees(mergeTreeList, tree);
-    printf("Completed large bulkload\n");
 }
