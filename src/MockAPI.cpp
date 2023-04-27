@@ -1,12 +1,12 @@
 #include <algorithm>
 #include <chrono>
+#include <random>
 #include <string.h>
 #include <iostream>
 #include "headers/Config.h"
 #include "headers/MockAPI.h"
 #include "headers/MemoryStructures.h"
 #include "headers/scheduler.h"
-
 inline void __randomLocation(char *location)
 {
     for (int i = 0; i < CHARACTER_LIMIT - 1; i++)
@@ -16,47 +16,40 @@ inline void __randomLocation(char *location)
     location[CHARACTER_LIMIT - 1] = '\0';
 }
 
-inline float __randomFloat(float range)
+inline float __randomUniformDistribution(float x, float y)
 {
-    return static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / range));
+    static thread_local mt19937 generator(random_device{}());
+    uniform_real_distribution<float> distribution(x, y);
+    return distribution(generator);
+}
+
+inline float __randomNormalDistribution(float mean, float stddev)
+{
+    static thread_local mt19937 generator(random_device{}());
+    normal_distribution<float> distribution(mean, stddev);
+    return distribution(generator);
 }
 
 MockApi::MockApi::MockApi()
 {
+    min = API_MIN;
+    max = API_MAX;
     delay = API_DELAY_MS;
-}
-
-MockApi::MockApi(int mockSize)
-{
-    mockData = new DataNode[mockSize];
-    delay = API_DELAY_MS;
-    for (int i = 0; i < mockSize; i++)
+    if (API_DATA_TYPE == 0)
     {
-        mockData[i].cordinates[0] = __randomFloat(1000);
-        mockData[i].cordinates[1] = __randomFloat(1000);
-        __randomLocation(mockData[i].location);
+        selectedRandomFunc = &__randomUniformDistribution;
+    }
+    if (API_DATA_TYPE == 1)
+    {
+        selectedRandomFunc = &__randomNormalDistribution;
     }
 }
 
 DataNode *MockApi::fetchRandom(DataNode *node)
 {
-    node->cordinates[0] = __randomFloat(100000);
-    node->cordinates[1] = __randomFloat(100000);
+    node->cordinates[0] = selectedRandomFunc(min, max);
+    node->cordinates[1] = selectedRandomFunc(min, max);
     __randomLocation(node->location);
-    auto start_time = std::chrono::steady_clock::now();
-    while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start_time).count() < delay)
-    {
-    }
-
-    return node;
-}
-
-DataNode *MockApi::selectStores(DataNode *node)
-{
-    int counter = mockDataPtr.fetch_add(1);
-    node->cordinates[0] = mockData->cordinates[0];
-    node->cordinates[1] = mockData->cordinates[1];
-    strcpy(node->location, mockData[counter].location);
     auto start_time = std::chrono::steady_clock::now();
     while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start_time).count() < delay)
     {
@@ -94,8 +87,4 @@ WindowQuery *MockApi::fetchWindowQuery()
 
 MockApi::~MockApi()
 {
-    if (mockData != nullptr)
-    {
-        delete[] mockData;
-    }
 }

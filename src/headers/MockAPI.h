@@ -18,21 +18,16 @@ public:
     MockApi(int mockSize);
     ~MockApi();
     atomic<int> delay;
+    float min = -1, max = -1;
     // current threads
     // timeout range
 
     Scheduler *scheduler;
-    DataNode *mockData = nullptr;
-    atomic<int> mockDataPtr = 0;
 
-    int generateMockData();
-    int loadMockData(char *FILE);
+    float (*selectedRandomFunc)(float, float) = nullptr;
 
     DataNode *fetchRandom(DataNode *node);
-    DataNode *selectStores(DataNode *node);
-
     WindowQuery *fetchWindowQuery();
 };
 
-void *_MockAPIMainThread(void *mockAPI);
 #endif
