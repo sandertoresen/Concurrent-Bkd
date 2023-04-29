@@ -49,9 +49,10 @@ DataNode *MockApi::fetchRandom(DataNode *node)
 {
     node->cordinates[0] = selectedRandomFunc(min, max);
     node->cordinates[1] = selectedRandomFunc(min, max);
+
     __randomLocation(node->location);
-    auto start_time = std::chrono::steady_clock::now();
-    while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start_time).count() < delay)
+    auto start_time = chrono::steady_clock::now();
+    while (chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start_time).count() < delay)
     {
     }
 
@@ -77,8 +78,8 @@ WindowQuery *MockApi::fetchWindowQuery()
         }
     }
 
-    auto start_time = std::chrono::steady_clock::now();
-    while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start_time).count() < delay)
+    auto start_time = chrono::steady_clock::now();
+    while (chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start_time).count() < delay)
     {
     }
 

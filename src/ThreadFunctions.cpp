@@ -91,6 +91,25 @@ void *_threadInserter(void *writerThread)
     pthread_exit(nullptr);
 }
 
+void *_threadInserterTree(void *writerThread)
+{
+    ScheduledThread *thread = (ScheduledThread *)writerThread;
+    BkdTree *tree = thread->tree;
+    while (thread->flag.load() == 1)
+    {
+        DataNode *threadData = new DataNode[THREAD_BUFFER_SIZE * DIMENSIONS];
+
+        for (int i = 0; i < THREAD_BUFFER_SIZE; i++)
+        {
+            tree->API->fetchRandom(&threadData[i]);
+        }
+
+        tree->_smallBulkloadTree(threadData);
+    }
+    thread->flag.store(-1);
+    pthread_exit(nullptr);
+}
+
 void *_windowLookup(void *readerThread)
 {
 
@@ -134,7 +153,7 @@ void *_windowLookup(void *readerThread)
                 it++;
             }
         }
-        printf("From %d trees|time:%fs|\n\n", localMap->readableTrees->size(), duration.count());
+        // printf("From %d trees|time:%fs|\n\n", localMap->readableTrees->size(), duration.count());
         // printf("Got %d size query\n", query->results.size());
         query->results.clear();
 
@@ -150,7 +169,7 @@ void *_performLargerBulkLoad(void *bulkLoadThread)
     Scheduler *sch = thread->scheduler;
     while (thread->flag.load() == 1)
     {
-        int maxLevel = sch->bkdTree->largestLevel.load();
+        int maxLevel = 0; // sch->bkdTree->largestLevel.load();
         for (int i = 0; i <= maxLevel; i++)
         {
             if (thread->flag.load() != 1)

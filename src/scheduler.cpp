@@ -44,16 +44,16 @@ void *_schedulerMainThread(void *scheduler)
 
     bool running = true;
     // spawn initial writer threads
+    sch->bkdTree->testStart = chrono::high_resolution_clock::now();
     for (int i = 0; i < INITIAL_WRITERS; i++)
     {
         ScheduledThread *thread = new ScheduledThread;
         thread->flag = 1;
         thread->tree = sch->bkdTree;
-        pthread_create(&thread->thread, nullptr, _threadInserter, (void *)thread);
+        pthread_create(&thread->thread, nullptr, _threadInserterTree, (void *)thread);
         sch->activeThreads++;
         sch->writers.push_back(thread);
     }
-
     for (int i = 0; i < INITIAL_READERS; i++)
     {
         ScheduledThread *thread = new ScheduledThread;
@@ -76,16 +76,23 @@ void *_schedulerMainThread(void *scheduler)
     {
         int currentCount = sch->bkdTree->treeId.load();
 
-        if (sch->bkdTree->treeId.load() > TREES_CREATED)
+        /*if (sch->bkdTree->treeId.load() > TREES_CREATED)
         {
             printf("Got %d trees\n", sch->bkdTree->treeId.load());
             sch->shutdown();
             break;
-        }
+        }*/
 
-        while (currentCount + EPOCH_WAIT_NUM > sch->bkdTree->treeId.load())
+        while (currentCount + EPOCH_WAIT_NUM > sch->bkdTree->treeId.load() && sch->bkdTree->testEnd == chrono::time_point<chrono::high_resolution_clock>::min())
         {
             sched_yield();
+        }
+
+        if (sch->bkdTree->testEnd != chrono::time_point<chrono::high_resolution_clock>::min())
+        {
+            printf("Got %d trees\n", sch->bkdTree->treeId.load());
+            sch->shutdown();
+            break;
         }
         sch->deleteOldMaps();
     }
@@ -305,10 +312,10 @@ void Scheduler::largeBulkloads(int selectedLevel)
     }
 
     int level = selectedLevel ? mergeTreeList->size() * selectedLevel : mergeTreeList->size();
-    if (level > bkdTree->largestLevel.load())
+    /*if (level > bkdTree->largestLevel.load())
     {
         bkdTree->largestLevel.store(level);
-    }
+    }*/
 
     KdbTree *tree = KdbCreateTree(values, numNodes, generateUniqueId(bkdTree->treeId), level);
 

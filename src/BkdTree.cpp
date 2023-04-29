@@ -131,6 +131,37 @@ BkdTree::~BkdTree() // Destructor
     delete graveFilter;
 }
 
+// Small bulkload test
+void BkdTree::_smallBulkloadTree(DataNode *values)
+{
+    int numNodes = THREAD_BUFFER_SIZE;
+
+    for (int d = 0; d < DIMENSIONS; d++)
+    {
+        if (d != 0) // paste over tree data
+            memcpy(&values[d * numNodes], &values[0], sizeof(DataNode) * numNodes);
+
+        std::sort(&values[d * numNodes], &values[d * numNodes + numNodes], dataNodeCMP(d));
+    }
+
+    KdbTree *tree = KdbCreateTree(values, numNodes, generateUniqueId(treeId), 0);
+    delete[] values;
+
+    // store medium tree
+    pthread_mutex_lock(&mediumWriteTreesLock);
+    globalWriteMediumTrees.push_back(tree);
+    pthread_mutex_unlock(&mediumWriteTreesLock);
+
+    int localMediumTreesCreated = mediumTreesCreated.fetch_add(1);
+    if (localMediumTreesCreated == TREE_CREATE_TEST_VAL)
+    {
+        testEnd = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed_seconds = testEnd - testStart;
+        printf("Time elapsed %fs\n", elapsed_seconds.count());
+    }
+    updateReadTrees(nullptr, tree);
+}
+
 // pointers to take in Memory array, Disk array
 void BkdTree::_bulkloadTree()
 {
@@ -223,12 +254,19 @@ void BkdTree::_bulkloadTree()
         pthread_mutex_lock(&mediumWriteTreesLock);
         globalWriteMediumTrees.push_back(tree);
         pthread_mutex_unlock(&mediumWriteTreesLock);
+        int localMediumTreesCreated = mediumTreesCreated.fetch_add(1);
+        if (localMediumTreesCreated == TREE_CREATE_TEST_VAL)
+        {
+            testEnd = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> elapsed_seconds = testEnd - testStart;
+            printf("Time elapsed %fs\n", elapsed_seconds.count());
+        }
     }
 
     updateReadTrees(mergeTreeList, tree);
 
     pthread_mutex_unlock(&smallBulkingLock);
-    bulkLoadQueue.fetch_sub(1);
+    // bulkLoadQueue.fetch_sub(1);
 }
 
 void BkdTree::deleteValue(char *location)
@@ -288,14 +326,17 @@ void BkdTree::updateReadTrees(list<KdbTree *> *mergeTreeList, KdbTree *tree)
     else
     {
         mapCopy->epoch.store(generateUniqueId(epoch));
-        printf("generated epoch: %d\n", mapCopy->epoch.load());
+        // printf("generated epoch: %d\n", mapCopy->epoch.load());
         mapCopy->readableTrees = new unordered_map<long,
                                                    KdbTree *>(*localReadMap->readableTrees);
     }
 
-    for (auto oldTree : *mergeTreeList)
+    if (mergeTreeList != nullptr)
     {
-        mapCopy->readableTrees->erase(oldTree->id);
+        for (auto oldTree : *mergeTreeList)
+        {
+            mapCopy->readableTrees->erase(oldTree->id);
+        }
     }
 
     mapCopy->readableTrees->insert(make_pair(tree->id, tree));

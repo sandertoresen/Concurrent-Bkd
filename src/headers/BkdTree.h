@@ -1,10 +1,13 @@
 #ifndef BKD_TREE_H
 #define BKD_TREE_H
+#include <chrono>
 #include <list>
 #include <unordered_map>
 #include <unordered_set>
 #include "Config.h"
 #include "ThreadFunctions.h"
+
+using namespace std;
 
 struct DataNode;
 struct KdbTree;
@@ -40,6 +43,7 @@ public:
     int insert(DataNode *values);
     void deleteNode(char *location);
     void _bulkloadTree();
+    void _smallBulkloadTree(DataNode *values);
     void updateReadTrees(list<KdbTree *> *mergeTreeList, KdbTree *tree);
 
     atomic<int> bulkLoadQueue = 0;
@@ -60,6 +64,11 @@ public:
 
     atomic<int> largestLevel = 0;
     list<KdbTree *> globalWriteLargeTrees;
+
+    // Value created for benchmarking the program
+    atomic<int> mediumTreesCreated = 0;
+    chrono::time_point<chrono::high_resolution_clock> testStart = {};
+    chrono::time_point<chrono::high_resolution_clock> testEnd = chrono::time_point<chrono::high_resolution_clock>::min();
 
     atomic<long> treeId = 0;
     atomic<long> epoch = 0;
@@ -90,5 +99,6 @@ private:
 // arg == Bkdtree?
 
 void *_threadInserter(void *bkdTree);
+void *_threadInserterTree(void *bkdTree);
 
 #endif
