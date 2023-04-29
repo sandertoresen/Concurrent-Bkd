@@ -1,0 +1,16 @@
+program 1: average run time 278.92 seconds!
+program 2: average run time 147.69 seconds!
+program 3: average run time 98.49 seconds!
+program 4: average run time 82.06 seconds!
+program 5: average run time 65.65 seconds!
+program 6: average run time 49.24 seconds!
+program 7: average run time 49.24 seconds!
+program 8: average run time 49.23 seconds!
+program 9: average run time 32.83 seconds!
+program 10: average run time 32.83 seconds!
+program 11: average run time 32.83 seconds!
+program 12: average run time 32.83 seconds!
+program 13: average run time 32.83 seconds!
+program 14: average run time 32.83 seconds!
+program 15: average run time 32.83 seconds!
+program 16: average run time 32.83 seconds!

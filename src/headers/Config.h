@@ -29,7 +29,7 @@
 #define API_MIN 0       // min or mean
 #define API_MAX 10000   // max or standard deviation
 
-#define INITIAL_WRITERS 1
+#define INITIAL_WRITERS 31
 #define INITIAL_READERS 0
 #define BULK_THREAD 0
 
