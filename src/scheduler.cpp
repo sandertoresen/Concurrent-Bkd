@@ -44,12 +44,12 @@ void *_schedulerMainThread(void *scheduler)
 
     bool running = true;
     // spawn initial writer threads
-    sch->bkdTree->testStart = chrono::high_resolution_clock::now();
     for (int i = 0; i < sch->numWriters; i++)
     {
         ScheduledThread *thread = new ScheduledThread;
         thread->flag = 1;
         thread->tree = sch->bkdTree;
+        thread->threadId = i;
         pthread_create(&thread->thread, nullptr, _threadInserterTree, (void *)thread);
         sch->activeThreads++;
         sch->writers.push_back(thread);
@@ -83,17 +83,18 @@ void *_schedulerMainThread(void *scheduler)
             break;
         }*/
 
-        while (currentCount + EPOCH_WAIT_NUM > sch->bkdTree->treeId.load() && sch->bkdTree->testEnd == chrono::time_point<chrono::high_resolution_clock>::min())
+        // TODO YIELD UNTILL TEST DONE!
+        while (true) // TREE_CREATE_TEST_VAL > sch->bkdTree->treeId.load())
         {
             sched_yield();
         }
 
-        if (sch->bkdTree->testEnd != chrono::time_point<chrono::high_resolution_clock>::min())
+        printf("Got %d trees\n", sch->bkdTree->treeId.load());
+        sch->shutdown();
+        break;
+        /*if (sch->bkdTree->testEnd != chrono::time_point<chrono::high_resolution_clock>::min())
         {
-            printf("Got %d trees\n", sch->bkdTree->treeId.load());
-            sch->shutdown();
-            break;
-        }
+        }*/
         sch->deleteOldMaps();
     }
     // check performance and if more threads are needed(?)
@@ -323,5 +324,5 @@ void Scheduler::largeBulkloads(int selectedLevel)
     delete[] values;
 
     bkdTree->globalWriteLargeTrees.push_back(tree);
-    bkdTree->updateReadTrees(mergeTreeList, tree);
+    bkdTree->updateReadTrees(mergeTreeList, tree, -1);
 }

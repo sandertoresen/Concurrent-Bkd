@@ -132,7 +132,7 @@ BkdTree::~BkdTree() // Destructor
 }
 
 // Small bulkload test
-void BkdTree::_smallBulkloadTree(DataNode *values)
+void BkdTree::_smallBulkloadTree(DataNode *values, int threadId)
 {
     int numNodes = THREAD_BUFFER_SIZE;
 
@@ -153,13 +153,7 @@ void BkdTree::_smallBulkloadTree(DataNode *values)
     pthread_mutex_unlock(&mediumWriteTreesLock);
 
     int localMediumTreesCreated = mediumTreesCreated.fetch_add(1);
-    if (localMediumTreesCreated == TREE_CREATE_TEST_VAL)
-    {
-        testEnd = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed_seconds = testEnd - testStart;
-        printf("Time elapsed %fs\n", elapsed_seconds.count());
-    }
-    updateReadTrees(nullptr, tree);
+    updateReadTrees(nullptr, tree, threadId);
 }
 
 // pointers to take in Memory array, Disk array
@@ -255,15 +249,9 @@ void BkdTree::_bulkloadTree()
         globalWriteMediumTrees.push_back(tree);
         pthread_mutex_unlock(&mediumWriteTreesLock);
         int localMediumTreesCreated = mediumTreesCreated.fetch_add(1);
-        if (localMediumTreesCreated == TREE_CREATE_TEST_VAL)
-        {
-            testEnd = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double> elapsed_seconds = testEnd - testStart;
-            printf("Time elapsed %fs\n", elapsed_seconds.count());
-        }
     }
 
-    updateReadTrees(mergeTreeList, tree);
+    updateReadTrees(mergeTreeList, tree, -1);
 
     pthread_mutex_unlock(&smallBulkingLock);
     // bulkLoadQueue.fetch_sub(1);
@@ -310,13 +298,19 @@ bool BkdTree::deleteIfFound(char *location)
     return false;
 }
 
-void BkdTree::updateReadTrees(list<KdbTree *> *mergeTreeList, KdbTree *tree)
+void BkdTree::updateReadTrees(list<KdbTree *> *mergeTreeList, KdbTree *tree, int threadId)
 {
     // IDEA: have a large trees scheduler, largetrees/later structures should never be blocked,
     // but if it schedules the changes, bulkload could be responisble for inserting them
     //  --> this is to avoid bulkloading getting locked..
     AtomicUnorderedMapElement *mapCopy = new AtomicUnorderedMapElement;
+    chrono::time_point<chrono::high_resolution_clock> testCommunicatingStart;
+    chrono::time_point<chrono::high_resolution_clock> testCommunicatingEnd;
 
+    if (threadId == 0)
+    {
+        testCommunicatingStart = chrono::high_resolution_clock::now();
+    }
     pthread_mutex_lock(&globalReadMapWriteLock);
     AtomicUnorderedMapElement *localReadMap = globalReadMap;
     if (localReadMap == nullptr)
@@ -374,5 +368,12 @@ void BkdTree::updateReadTrees(list<KdbTree *> *mergeTreeList, KdbTree *tree)
             printf("ERROR ARRAY IS FULL BECAUSE OF LACK OF SCHEDULED!\n\n\n");
             exit(-1);
         }
+    }
+    if (threadId == 0)
+    {
+        testCommunicatingEnd = chrono::high_resolution_clock::now();
+
+        chrono::duration<double> elapsed_seconds = testCommunicatingEnd - testCommunicatingStart;
+        communicatingTime += elapsed_seconds.count();
     }
 }

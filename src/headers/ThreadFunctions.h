@@ -21,6 +21,7 @@ struct WindowQuery
 struct ScheduledThread
 {
     pthread_t thread;
+    int threadId;
     BkdTree *tree;
     atomic<int> flag;
     atomic<long> epoch = 0;

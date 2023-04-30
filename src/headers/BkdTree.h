@@ -43,8 +43,10 @@ public:
     int insert(DataNode *values);
     void deleteNode(char *location);
     void _bulkloadTree();
-    void _smallBulkloadTree(DataNode *values);
-    void updateReadTrees(list<KdbTree *> *mergeTreeList, KdbTree *tree);
+    void _smallBulkloadTree(DataNode *values, int threadId);
+    void updateReadTrees(list<KdbTree *> *mergeTreeList, KdbTree *tree, int threadId);
+
+    double communicatingTime = 0;
 
     atomic<int> bulkLoadQueue = 0;
     MockApi *API = nullptr;
@@ -67,8 +69,6 @@ public:
 
     // Value created for benchmarking the program
     atomic<int> mediumTreesCreated = 0;
-    chrono::time_point<chrono::high_resolution_clock> testStart = {};
-    chrono::time_point<chrono::high_resolution_clock> testEnd = chrono::time_point<chrono::high_resolution_clock>::min();
 
     atomic<long> treeId = 0;
     atomic<long> epoch = 0;

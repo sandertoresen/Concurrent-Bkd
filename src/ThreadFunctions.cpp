@@ -93,8 +93,15 @@ void *_threadInserter(void *writerThread)
 
 void *_threadInserterTree(void *writerThread)
 {
+    chrono::time_point<chrono::high_resolution_clock> testTotalTimeStart;
+    chrono::time_point<chrono::high_resolution_clock> testTotalTimeEnd;
+
     ScheduledThread *thread = (ScheduledThread *)writerThread;
     BkdTree *tree = thread->tree;
+    if (thread->threadId == 0)
+    {
+        testTotalTimeStart = chrono::high_resolution_clock::now();
+    }
     while (thread->flag.load() == 1)
     {
         DataNode *threadData = new DataNode[THREAD_BUFFER_SIZE * DIMENSIONS];
@@ -104,7 +111,20 @@ void *_threadInserterTree(void *writerThread)
             tree->API->fetchRandom(&threadData[i]);
         }
 
-        tree->_smallBulkloadTree(threadData);
+        tree->_smallBulkloadTree(threadData, thread->threadId);
+
+        if (thread->threadId == 0 && tree->mediumTreesCreated >= TREE_CREATE_TEST_VAL)
+        {
+            testTotalTimeEnd = std::chrono::high_resolution_clock::now();
+            chrono::duration<double> total_time = testTotalTimeEnd - testTotalTimeStart;
+
+            double communicatingTimeVal = total_time.count() - tree->communicatingTime;
+            double caltulatingTime = total_time.count() - communicatingTimeVal;
+            // printf("Time elapsed %fs  Time Calculated %fs Time communicated %fs  Percentage communicated %f \n", total_time.count(), caltulatingTime, communicatingTimeVal, (communicatingTimeVal / total_time.count()) * 100);
+            printf("Time communicated: %fs\n", communicatingTimeVal);
+            // printf("Percentage spent communicating %f%\n", (communicatingTimeVal / total_time.count()) * 100);
+            exit(0);
+        }
     }
     thread->flag.store(-1);
     pthread_exit(nullptr);
