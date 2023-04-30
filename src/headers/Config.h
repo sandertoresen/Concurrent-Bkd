@@ -24,7 +24,7 @@
 #define EPOCH_WAIT_NUM 10
 #define LARGE_BULKLOAD_SIZE 2
 
-#define API_DELAY_MS 1
+#define API_DELAY_MS 0
 #define API_DATA_TYPE 0 // 0 -> uniform data, 1 -> normal distribution
 #define API_MIN 0       // min or mean
 #define API_MAX 10000   // max or standard deviation

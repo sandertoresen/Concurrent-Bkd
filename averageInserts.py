@@ -2,7 +2,7 @@ import subprocess
 import re
 
 
-program_numbers = [1, 2, 4, 8, 16]
+program_numbers = [1, 2, 4, 8, 16, 30]
 program_numbers.reverse()
 avg_times = []
 
