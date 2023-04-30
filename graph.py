@@ -30,15 +30,31 @@ part = 1000000
 # plt.plot(x, average_time, color='green', marker='o', linestyle='dashed')
 # plt.show()
 
-average_time = [
-    26465220/part,
-    26250380/part,
-    26345690/part,
-    25632430/part,
-    25768070/part,
-    26392150/part,
-    26432620/part]
 
+# program 31: average run time 32.90 seconds!
+# program 30: average run time 32.85 seconds!
+
+# All average times:
+# program 16 average run time 49.24 seconds
+# program 8 average run time 82.05 seconds
+# program 4 average run time 147.69 seconds
+# program 2 average run time 278.95 seconds
+# program 1 average run time 541.42 seconds
+
+
+average_time = [
+    32.85,
+    49.24,
+    82.05,
+    147.69,
+    278.95,
+    541.42]
+
+average_time.reverse()
+
+x = [
+    1,2,4,8,16,30
+]
 # plt.rcParams['font.family'] = 'serif'
 # plt.rcParams['font.serif'] = ['Computer Modern']
 
@@ -47,17 +63,17 @@ rcParams['font.family'] = 'serif'
 rcParams['font.serif'] = ['cmr10']
 
 # Set the font path to the directory where your font files are located
-font_path = '/home/name/.fonts/cm-unicode-0.7.0/cmu-serif-roman.otf'
+# font_path = '/home/name/.fonts/cm-unicode-0.7.0/cmu-serif-roman.otf'
 
 # Set the font properties for the plot
 font_prop = {'family': 'serif', 'size': 12, 'weight': 'normal', 'style': 'normal'}
 
 
-x = range(0, len(average_time))
-plt.xlabel("Kdb-tree size")
-plt.ylabel("Average delete in milliseconds")
-plt.title("Delete timings multiple trees")
+# x = range(0, len(average_time))
+plt.xlabel("Number of threads")
+plt.ylabel("Average runtime in seconds")
+plt.title("Inserting trees with 1ms API delay")
 # the 20 worst runs are bulk loadings
-plt.xticks(x, trees)
-plt.plot(x, average_time, color='green', marker='o', linestyle='dashed')
+plt.xticks(x)
+plt.plot(x, average_time, color='blue', marker='x', linestyle='dashed')
 plt.show()
