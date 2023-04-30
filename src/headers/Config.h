@@ -9,7 +9,7 @@
 // it will also increase the communication between threads as there would be more writes to global memory per insert
 // however smaller buffers would cause readers to have more updated data.
 // should perform a test testing the effect of different thread buffer sizes.
-#define KDB_LEAF_SIZE 64
+#define KDB_LEAF_SIZE 128
 
 #define THREAD_BUFFER_SIZE 4096 * 4
 
@@ -29,7 +29,7 @@
 #define API_MIN 0       // min or mean
 #define API_MAX 10000   // max or standard deviation
 
-#define INITIAL_WRITERS 31
+#define INITIAL_WRITERS 0
 #define INITIAL_READERS 0
 #define BULK_THREAD 0
 
@@ -38,6 +38,6 @@
 
 #define TREES_CREATED 1000
 
-#define TREE_CREATE_TEST_VAL 16
+#define TREE_CREATE_TEST_VAL 32
 
 #endif

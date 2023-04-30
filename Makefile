@@ -15,12 +15,12 @@ HEADERS=src/headers/Config.h src/headers/MemoryStructures.h src/headers/ThreadFu
 OBJDIR=obj
 OBJS=$(addprefix $(OBJDIR)/, $(PROGRAM_SRC:.cpp=.o))
 
-all: program programO2
+all: program programGDB
 
-program: $(OBJS)
+programGDB: $(OBJS)
 	g++ -pg -lpthread -o $@ $^
 
-programO2:$(OBJS)
+program:$(OBJS)
 	g++ -O2 -lpthread -o $@ $^
 
 

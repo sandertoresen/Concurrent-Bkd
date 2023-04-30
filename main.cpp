@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdlib>
 #include <pthread.h>
 #include "src/headers/scheduler.h"
 #include "src/headers/ThreadFunctions.h"
@@ -9,9 +10,18 @@
 // #include "src/headers/KdbTree.h"
 // #include "src/headers/BloomFilter.h"
 
-int main()
+int main(int argc, char *argv[])
 {
+    if (argc != 2)
+    {
+        std::cerr << "Usage: " << argv[0] << " <integer argument>\n";
+        return 1;
+    }
+
+    int arg = std::atoi(argv[1]);
     Scheduler *scheduler = new Scheduler;
+    scheduler->numWriters = arg;
+
     _schedulerMainThread((void *)scheduler);
     printf("Delete scheduler\n");
     delete scheduler;

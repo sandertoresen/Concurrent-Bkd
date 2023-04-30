@@ -45,7 +45,7 @@ void *_schedulerMainThread(void *scheduler)
     bool running = true;
     // spawn initial writer threads
     sch->bkdTree->testStart = chrono::high_resolution_clock::now();
-    for (int i = 0; i < INITIAL_WRITERS; i++)
+    for (int i = 0; i < sch->numWriters; i++)
     {
         ScheduledThread *thread = new ScheduledThread;
         thread->flag = 1;

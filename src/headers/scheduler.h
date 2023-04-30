@@ -74,6 +74,8 @@ public:
    list<ScheduledThread *> writers;
    list<ScheduledThread *> readers;
    BulkLoadThread *bulkThread = nullptr;
+
+   int numWriters = -1;
 };
 
 void *_schedulerMainThread(void *scheduler);
