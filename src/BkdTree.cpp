@@ -184,7 +184,7 @@ void BkdTree::_bulkloadTree()
     pthread_mutex_lock(&smallBulkingLock);
 
     list<KdbTree *> *mergeTreeList = new list<KdbTree *>;
-    int treeArrayLocation = 0;
+    /*int treeArrayLocation = 0;
 
     for (int currentTree = 0; currentTree < MAX_BULKLOAD_LEVEL; currentTree++)
     {
@@ -214,6 +214,7 @@ void BkdTree::_bulkloadTree()
         }
         break;
     }
+    */
 
     /*
         TODO: extract this bulkload code into a shared function
@@ -229,11 +230,11 @@ void BkdTree::_bulkloadTree()
 
     int offset = localMemorySize + localDiskSize;
 
-    for (auto kdbTree : *mergeTreeList)
+    /*for (auto kdbTree : *mergeTreeList)
     {
         KdbTreeFetchNodes(kdbTree, &values[offset]);
         offset += kdbTree->size;
-    }
+    }*/
 
     for (int d = 0; d < DIMENSIONS; d++)
     {
@@ -245,23 +246,23 @@ void BkdTree::_bulkloadTree()
 
     KdbTree *tree = KdbCreateTree(values, numNodes, generateUniqueId(treeId), 0);
     delete[] values;
-    if (treeArrayLocation != -1)
+    /*if (treeArrayLocation != -1)
     { // store normal tree
         globalWriteSmallTrees[treeArrayLocation] = tree;
     }
     else
-    { // store large tree
-        pthread_mutex_lock(&mediumWriteTreesLock);
-        globalWriteMediumTrees.push_back(tree);
-        pthread_mutex_unlock(&mediumWriteTreesLock);
-        int localMediumTreesCreated = mediumTreesCreated.fetch_add(1);
-        if (localMediumTreesCreated == TREE_CREATE_TEST_VAL)
-        {
-            testEnd = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double> elapsed_seconds = testEnd - testStart;
-            printf("Time elapsed %fs\n", elapsed_seconds.count());
-        }
+    { // store large tree*/
+    pthread_mutex_lock(&mediumWriteTreesLock);
+    globalWriteMediumTrees.push_back(tree);
+    pthread_mutex_unlock(&mediumWriteTreesLock);
+    int localMediumTreesCreated = mediumTreesCreated.fetch_add(1);
+    if (localMediumTreesCreated == TREE_CREATE_TEST_VAL)
+    {
+        testEnd = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed_seconds = testEnd - testStart;
+        printf("Time elapsed %fs\n", elapsed_seconds.count());
     }
+    // }
 
     updateReadTrees(mergeTreeList, tree);
 

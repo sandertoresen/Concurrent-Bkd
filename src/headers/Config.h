@@ -11,20 +11,20 @@
 // should perform a test testing the effect of different thread buffer sizes.
 #define KDB_LEAF_SIZE 128
 
-#define THREAD_BUFFER_SIZE 4096 * 4
+#define THREAD_BUFFER_SIZE 4096
 
 // Chunk size should be a size so that a bulkload is faster than filling the entire memory
-#define GLOBAL_B_CHUNK_SIZE 8
+#define GLOBAL_B_CHUNK_SIZE 4
 #define GLOBAL_BUFFER_SIZE (GLOBAL_B_CHUNK_SIZE * THREAD_BUFFER_SIZE)
 
 // max (GLOBAL_BUFFER_SIZE * 2) * 5 size trees
-#define MAX_BULKLOAD_LEVEL 4
+#define MAX_BULKLOAD_LEVEL 8
 #define SCHEDULER_MAP_ARRAY_SIZE 1024
 
 #define EPOCH_WAIT_NUM 10
 #define LARGE_BULKLOAD_SIZE 2
 
-#define API_DELAY_MS 1
+#define API_DELAY_MS 0
 #define API_DATA_TYPE 0 // 0 -> uniform data, 1 -> normal distribution
 #define API_MIN 0       // min or mean
 #define API_MAX 10000   // max or standard deviation

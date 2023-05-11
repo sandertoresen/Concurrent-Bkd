@@ -50,7 +50,7 @@ void *_schedulerMainThread(void *scheduler)
         ScheduledThread *thread = new ScheduledThread;
         thread->flag = 1;
         thread->tree = sch->bkdTree;
-        pthread_create(&thread->thread, nullptr, _threadInserterTree, (void *)thread);
+        pthread_create(&thread->thread, nullptr, _threadInserter, (void *)thread);
         sch->activeThreads++;
         sch->writers.push_back(thread);
     }
