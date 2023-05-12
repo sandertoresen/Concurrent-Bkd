@@ -1,11 +1,33 @@
 Delay results:
 4*4096
+All average times:
+program 30 average run time 37.67 seconds
+program 16 average run time 69.78 seconds
+program 8 average run time 136.20 seconds
+program 4 average run time 271.48 seconds
+program 2 average run time 541.95 seconds
+program 1 average run time 1082.88 seconds
+
 
 No delay results 4:
 4*4096
+program 30 average run time 4.11 seconds
+program 16 average run time 3.55 seconds
+program 8 average run time 3.33 seconds
+program 4 average run time 3.01 seconds
+program 2 average run time 1.14 seconds
+program 1 average run time 1.47 seconds
+
 
 No delay results 64:
 64*4096
+program 30 average run time 63.29 seconds
+program 16 average run time 55.95 seconds
+program 8 average run time 53.18 seconds
+program 4 average run time 46.29 seconds
+program 2 average run time 24.56 seconds
+program 1 average run time 30.82 seconds
+
 
 
 // Config:
