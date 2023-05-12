@@ -22,6 +22,7 @@ struct ScheduledThread
 {
     pthread_t thread;
     int threadId;
+    int numTrees;
     BkdTree *tree;
     atomic<int> flag;
     atomic<long> epoch = 0;

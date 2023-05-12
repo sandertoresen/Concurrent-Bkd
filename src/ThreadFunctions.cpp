@@ -102,28 +102,24 @@ void *_threadInserterTree(void *writerThread)
     {
         testTotalTimeStart = chrono::high_resolution_clock::now();
     }
+    int totalNodes = 4096 * 4096 * 2;
+    int numTrees = thread->numTrees;
+    int added = 0;
+    int treeSize = totalNodes / numTrees;
     while (thread->flag.load() == 1)
     {
-        DataNode *threadData = new DataNode[THREAD_BUFFER_SIZE * DIMENSIONS];
+        DataNode *threadData = new DataNode[treeSize * DIMENSIONS];
 
-        for (int i = 0; i < THREAD_BUFFER_SIZE; i++)
+        for (int i = 0; i < treeSize; i++)
         {
             tree->API->fetchRandom(&threadData[i]);
         }
-
-        tree->_smallBulkloadTree(threadData, thread->threadId);
-
-        if (thread->threadId == 0 && tree->mediumTreesCreated >= TREE_CREATE_TEST_VAL)
+        tree->_smallBulkloadTree(threadData, treeSize);
+        added++;
+        if (added == numTrees)
         {
-            testTotalTimeEnd = std::chrono::high_resolution_clock::now();
-            chrono::duration<double> total_time = testTotalTimeEnd - testTotalTimeStart;
-
-            double communicatingTimeVal = total_time.count() - tree->communicatingTime;
-            double caltulatingTime = total_time.count() - communicatingTimeVal;
-            // printf("Time elapsed %fs  Time Calculated %fs Time communicated %fs  Percentage communicated %f \n", total_time.count(), caltulatingTime, communicatingTimeVal, (communicatingTimeVal / total_time.count()) * 100);
-            printf("Time communicated: %fs\n", communicatingTimeVal);
-            // printf("Percentage spent communicating %f%\n", (communicatingTimeVal / total_time.count()) * 100);
-            exit(0);
+            printf("added: %d\n", added);
+            break;
         }
     }
     thread->flag.store(-1);
@@ -138,8 +134,8 @@ void *_windowLookup(void *readerThread)
 
     while (thread->flag.load() == 1)
     {
-        auto start = chrono::high_resolution_clock::now();
         WindowQuery *query = tree->API->fetchWindowQuery();
+        auto start = chrono::high_resolution_clock::now();
 
         AtomicUnorderedMapElement *localMap = tree->globalReadMap.load();
 
@@ -159,7 +155,8 @@ void *_windowLookup(void *readerThread)
         auto stop = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::duration<double>>(stop - start);
 
-        // printf("Read %d values in %fs\n", query->results.size(), duration.count());
+        printf("Read %d values in %fs from %d trees\n", query->results.size(), duration.count(), localMap->readableTrees->size());
+        exit(0);
         // TODO do something with results(?)
         for (auto it = query->results.begin(); it != query->results.end();)
         {

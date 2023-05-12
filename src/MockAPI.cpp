@@ -64,8 +64,8 @@ WindowQuery *MockApi::fetchWindowQuery()
     WindowQuery *query = new WindowQuery;
     for (int d = 0; d < DIMENSIONS; d++)
     {
-        float a = 0;      //__randomFloat(1000);
-        float b = 100000; //__randomFloat(1000);
+        float a = API_MIN; //__randomFloat(1000);
+        float b = API_MAX; //__randomFloat(1000);
         if (a > b)
         {
             query->window[d][0] = b;

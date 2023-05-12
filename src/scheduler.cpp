@@ -44,11 +44,12 @@ void *_schedulerMainThread(void *scheduler)
 
     bool running = true;
     // spawn initial writer threads
-    for (int i = 0; i < sch->numWriters; i++)
+    ScheduledThread *thread = new ScheduledThread;
+    for (int i = 0; i < 1; i++)
     {
-        ScheduledThread *thread = new ScheduledThread;
         thread->flag = 1;
         thread->tree = sch->bkdTree;
+        thread->numTrees = sch->numWriters;
         thread->threadId = i;
         pthread_create(&thread->thread, nullptr, _threadInserterTree, (void *)thread);
         sch->activeThreads++;
@@ -75,27 +76,26 @@ void *_schedulerMainThread(void *scheduler)
     while (running)
     {
         int currentCount = sch->bkdTree->treeId.load();
-
-        /*if (sch->bkdTree->treeId.load() > TREES_CREATED)
-        {
-            printf("Got %d trees\n", sch->bkdTree->treeId.load());
-            sch->shutdown();
-            break;
-        }*/
-
         // TODO YIELD UNTILL TEST DONE!
-        while (true) // TREE_CREATE_TEST_VAL > sch->bkdTree->treeId.load())
+
+        while (thread->flag.load() != -1) // TREE_CREATE_TEST_VAL > sch->bkdTree->treeId.load())
         {
             sched_yield();
         }
 
-        printf("Got %d trees\n", sch->bkdTree->treeId.load());
-        sch->shutdown();
-        break;
-        /*if (sch->bkdTree->testEnd != chrono::time_point<chrono::high_resolution_clock>::min())
+        // Create test reader to benchmark
+        ScheduledThread *thread = new ScheduledThread;
+        thread->flag = 1;
+        thread->tree = sch->bkdTree;
+        thread->epoch = 0;
+        pthread_create(&thread->thread, nullptr, _windowLookup, (void *)thread);
+        sch->activeThreads++;
+        sch->readers.push_back(thread);
+
+        while (true)
         {
-        }*/
-        sch->deleteOldMaps();
+            sched_yield();
+        }
     }
     // check performance and if more threads are needed(?)
 

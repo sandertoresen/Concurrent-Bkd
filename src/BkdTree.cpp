@@ -134,7 +134,7 @@ BkdTree::~BkdTree() // Destructor
 // Small bulkload test
 void BkdTree::_smallBulkloadTree(DataNode *values, int threadId)
 {
-    int numNodes = THREAD_BUFFER_SIZE;
+    int numNodes = threadId;
 
     for (int d = 0; d < DIMENSIONS; d++)
     {
@@ -304,13 +304,7 @@ void BkdTree::updateReadTrees(list<KdbTree *> *mergeTreeList, KdbTree *tree, int
     // but if it schedules the changes, bulkload could be responisble for inserting them
     //  --> this is to avoid bulkloading getting locked..
     AtomicUnorderedMapElement *mapCopy = new AtomicUnorderedMapElement;
-    chrono::time_point<chrono::high_resolution_clock> testCommunicatingStart;
-    chrono::time_point<chrono::high_resolution_clock> testCommunicatingEnd;
 
-    if (threadId == 0)
-    {
-        testCommunicatingStart = chrono::high_resolution_clock::now();
-    }
     pthread_mutex_lock(&globalReadMapWriteLock);
     AtomicUnorderedMapElement *localReadMap = globalReadMap;
     if (localReadMap == nullptr)
@@ -346,7 +340,7 @@ void BkdTree::updateReadTrees(list<KdbTree *> *mergeTreeList, KdbTree *tree, int
     }
 
     oldMap->oldTrees = mergeTreeList;
-    while (true)
+    /*while (true)
     {
         int index = -1;
         for (int i = 0; i < SCHEDULER_MAP_ARRAY_SIZE; i++)
@@ -368,12 +362,5 @@ void BkdTree::updateReadTrees(list<KdbTree *> *mergeTreeList, KdbTree *tree, int
             printf("ERROR ARRAY IS FULL BECAUSE OF LACK OF SCHEDULED!\n\n\n");
             exit(-1);
         }
-    }
-    if (threadId == 0)
-    {
-        testCommunicatingEnd = chrono::high_resolution_clock::now();
-
-        chrono::duration<double> elapsed_seconds = testCommunicatingEnd - testCommunicatingStart;
-        communicatingTime += elapsed_seconds.count();
-    }
+    }*/
 }
