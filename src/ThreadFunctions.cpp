@@ -102,7 +102,7 @@ void *_threadInserterTree(void *writerThread)
     {
         testTotalTimeStart = chrono::high_resolution_clock::now();
     }
-    int totalNodes = 4096 * 4096 * 2;
+    int totalNodes = 4096 * 4096;
     int numTrees = thread->numTrees;
     int added = 0;
     int treeSize = totalNodes / numTrees;

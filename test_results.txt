@@ -1,61 +1,39 @@
-program 1: average run time 278.92 seconds!
-program 2: average run time 147.69 seconds!
-program 3: average run time 98.49 seconds!
-program 4: average run time 82.06 seconds!
-program 5: average run time 65.65 seconds!
-program 6: average run time 49.24 seconds!
-program 7: average run time 49.24 seconds!
-program 8: average run time 49.23 seconds!
-program 9: average run time 32.83 seconds!
-program 10: average run time 32.83 seconds!
-program 11: average run time 32.83 seconds!
-program 12: average run time 32.83 seconds!
-program 13: average run time 32.83 seconds!
-program 14: average run time 32.83 seconds!
-program 15: average run time 32.83 seconds!
-program 16: average run time 32.83 seconds!
+Read results 0-10000 (min-max)
+Results:
+16384 trees: 2.625375s (16777216 nodes)
+8192 trees: 2.604198s (16777216 nodes)
+4096 trees: 2.598557s (16777216 nodes)
+2048 trees: 2.659225s (16777216 nodes)
+1024 trees: 2.585117s (16777216 nodes)
+512 trees: 2.587352s (16777216 nodes)
+256 trees: 2.592684s (16777216 nodes)
+128 trees: 2.579538s (16777216 nodes)
+64 trees: 2.592400s (16777216 nodes)
+32 trees: 2.532106s (16777216 nodes)
+16 trees: 2.477229s (16777216 nodes)
+8 trees: 2.505266s (16777216 nodes)
+4 trees: 2.472122s (16777216 nodes)
+2 trees: 2.477080s (16777216 nodes)
+1 trees: 2.513503s (16777216 nodes)
 
 
-#ifndef CONFIG
-#define CONFIG
-// Config:
+Results read 0-5000 (min-max/2)
+Results:
+16384 trees: 0.756780s (4193320 nodes)
+8192 trees: 0.715626s (4196764 nodes)
+4096 trees: 0.702408s (4193544 nodes)
+2048 trees: 0.709481s (4191409 nodes)
+1024 trees: 0.683561s (4195088 nodes)
+512 trees: 0.677533s (4197050 nodes)
+256 trees: 0.680944s (4192265 nodes)
+128 trees: 0.670564s (4193904 nodes)
+64 trees: 0.662937s (4197178 nodes)
+32 trees: 0.636304s (4191554 nodes)
+16 trees: 0.566949s (4195545 nodes)
+8 trees: 0.597696s (4196731 nodes)
+4 trees: 0.567196s (4192269 nodes)
+2 trees: 0.572004s (4194708 nodes)
+1 trees: 0.594504s (4193620 nodes)
 
-#define DIMENSIONS 2
-#define CHARACTER_LIMIT 16
 
-// if thread buffer is small, threads will complete fast, exit and queue up bulkloadings
-// it will also increase the communication between threads as there would be more writes to global memory per insert
-// however smaller buffers would cause readers to have more updated data.
-// should perform a test testing the effect of different thread buffer sizes.
-#define KDB_LEAF_SIZE 64
 
-#define THREAD_BUFFER_SIZE 4096 * 4
-
-// Chunk size should be a size so that a bulkload is faster than filling the entire memory
-#define GLOBAL_B_CHUNK_SIZE 8
-#define GLOBAL_BUFFER_SIZE (GLOBAL_B_CHUNK_SIZE * THREAD_BUFFER_SIZE)
-
-// max (GLOBAL_BUFFER_SIZE * 2) * 5 size trees
-#define MAX_BULKLOAD_LEVEL 4
-#define SCHEDULER_MAP_ARRAY_SIZE 1024
-
-#define EPOCH_WAIT_NUM 10
-#define LARGE_BULKLOAD_SIZE 2
-
-#define API_DELAY_MS 1
-#define API_DATA_TYPE 0 // 0 -> uniform data, 1 -> normal distribution
-#define API_MIN 0       // min or mean
-#define API_MAX 10000   // max or standard deviation
-
-#define INITIAL_WRITERS 31
-#define INITIAL_READERS 0
-#define BULK_THREAD 0
-
-#define BLOOM_SIZE 1000000
-#define BLOOM_NUM_HASHES 6
-
-#define TREES_CREATED 1000
-
-#define TREE_CREATE_TEST_VAL 16
-
-#endif

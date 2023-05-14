@@ -3,7 +3,7 @@ import re
 
 tree_counts = [16384, 8192, 4096, 2048, 1024,
                512, 256, 128, 64, 32, 16, 8, 4, 2, 1]
-# tree_counts = [1, 2, 4, 8, 16, 32]
+# tree_counts = [2, 1]
 num_runs = 10
 
 results = {}
