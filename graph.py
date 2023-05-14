@@ -30,31 +30,63 @@ part = 1000000
 # plt.plot(x, average_time, color='green', marker='o', linestyle='dashed')
 # plt.show()
 
-
-# program 31: average run time 32.90 seconds!
-# program 30: average run time 32.85 seconds!
-
-# All average times:
-# program 16 average run time 49.24 seconds
-# program 8 average run time 82.05 seconds
-# program 4 average run time 147.69 seconds
-# program 2 average run time 278.95 seconds
-# program 1 average run time 541.42 seconds
+# 16384 trees: 2.625375s (16777216 nodes)
+# 8192 trees: 2.604198s (16777216 nodes)
+# 4096 trees: 2.598557s (16777216 nodes)
+# 2048 trees: 2.659225s (16777216 nodes)
+# 1024 trees: 2.585117s (16777216 nodes)
+# 512 trees: 2.587352s (16777216 nodes)
+# 256 trees: 2.592684s (16777216 nodes)
+# 128 trees: 2.579538s (16777216 nodes)
+# 64 trees: 2.592400s (16777216 nodes)
+# 32 trees: 2.532106s (16777216 nodes)
+# 16 trees: 2.477229s (16777216 nodes)
+# 8 trees: 2.505266s (16777216 nodes)
+# 4 trees: 2.472122s (16777216 nodes)
+# 2 trees: 2.477080s (16777216 nodes)
+# 1 trees: 2.513503s (16777216 nodes)
 
 
 average_time = [
-    32.85,
-    49.24,
-    82.05,
-    147.69,
-    278.95,
-    541.42]
+    2.625375,
+    2.604198,
+    2.598557,
+    2.659225,
+    2.585117,
+    2.587352,
+    2.592684,
+    2.579538,
+    2.592400,
+    2.532106,
+    2.477229,
+    2.505266,
+    2.472122,
+    2.477080,
+    2.513503]
 
-average_time.reverse()
+for i, v in enumerate(average_time):
+    average_time[i] = v * 100
+# average_time.reverse()
 
-x = [
-    1,2,4,8,16,30
+numTrees = [
+    16384,
+    8192,
+    4096,
+    2048,
+    1024,
+    512,
+    256,
+    128,
+    64,
+    32,
+    16,
+    8,
+    4,
+    2,
+    1
 ]
+
+
 # plt.rcParams['font.family'] = 'serif'
 # plt.rcParams['font.serif'] = ['Computer Modern']
 
@@ -66,14 +98,17 @@ rcParams['font.serif'] = ['cmr10']
 # font_path = '/home/name/.fonts/cm-unicode-0.7.0/cmu-serif-roman.otf'
 
 # Set the font properties for the plot
-font_prop = {'family': 'serif', 'size': 12, 'weight': 'normal', 'style': 'normal'}
+font_prop = {'family': 'serif', 'size': 12,
+             'weight': 'normal', 'style': 'normal'}
 
 
 # x = range(0, len(average_time))
-plt.xlabel("Number of threads")
-plt.ylabel("Average runtime in seconds")
-plt.title("Inserting trees with 1ms API delay")
+plt.xlabel("Number of trees")
+plt.ylabel("Average query time in milliseconds")
+plt.title(
+    "Comparing read performance of different tree distributions for full data retrival")
 # the 20 worst runs are bulk loadings
-plt.xticks(x)
-plt.plot(x, average_time, color='blue', marker='x', linestyle='dashed')
+plt.xticks(numTrees)
+plt.plot(numTrees, average_time, color='blue', marker='o', linestyle='dashed')
+plt.xscale('log', base=2)
 plt.show()
