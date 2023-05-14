@@ -1,4 +1,5 @@
-Read results 0-10000 (min-max)
+
+Read results 0-10000 (min-max) 100%
 Results:
 16384 trees: 2.625375s (16777216 nodes)
 8192 trees: 2.604198s (16777216 nodes)
@@ -17,7 +18,7 @@ Results:
 1 trees: 2.513503s (16777216 nodes)
 
 
-Results read 0-5000 (min-max/2)
+Results read 0-5000 (min-max/2) 25%
 Results:
 16384 trees: 0.756780s (4193320 nodes)
 8192 trees: 0.715626s (4196764 nodes)
@@ -36,4 +37,19 @@ Results:
 1 trees: 0.594504s (4193620 nodes)
 
 
-
+Results 10%
+16384 trees: 0.369479s (1677914 nodes)
+8192 trees: 0.329194s (1677503 nodes)
+4096 trees: 0.308299s (1677515 nodes)
+2048 trees: 0.322715s (1679973 nodes)
+1024 trees: 0.298112s (1676765 nodes)
+512 trees: 0.290438s (1675590 nodes)
+256 trees: 0.288922s (1676743 nodes)
+128 trees: 0.288420s (1676015 nodes)
+64 trees: 0.272704s (1677650 nodes)
+32 trees: 0.245995s (1677128 nodes)
+16 trees: 0.233717s (1677909 nodes)
+8 trees: 0.245002s (1678185 nodes)
+4 trees: 0.238365s (1676762 nodes)
+2 trees: 0.245181s (1678998 nodes)
+1 trees: 0.250628s (1676690 nodes)
