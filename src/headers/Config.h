@@ -9,7 +9,7 @@
 // it will also increase the communication between threads as there would be more writes to global memory per insert
 // however smaller buffers would cause readers to have more updated data.
 // should perform a test testing the effect of different thread buffer sizes.
-#define KDB_LEAF_SIZE 128
+#define KDB_LEAF_SIZE 64
 
 #define THREAD_BUFFER_SIZE 4096 * 4
 
