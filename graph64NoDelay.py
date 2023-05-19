@@ -42,7 +42,7 @@ font_prop = {'family': 'serif', 'size': 12,
 
 # x = range(0, len(average_time))
 plt.xlabel("Number of threads")
-plt.ylabel("Average overhead in seconds")
+plt.ylabel("Average runtime in seconds")
 plt.title(
     "Inserting trees using large global memory and disk buffers without API delay")
 # the 20 worst runs are bulk loadings
