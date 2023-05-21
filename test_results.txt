@@ -53,3 +53,17 @@ Results 10%
 4 trees: 0.238365s (1676762 nodes)
 2 trees: 0.245181s (1678998 nodes)
 1 trees: 0.250628s (1676690 nodes)
+
+Results 10% Leaf 64
+Avg time for 1677603 nodes (16384 trees): 0.458332s
+Avg time for 1676748 nodes (8192 trees): 0.347288s
+Avg time for 1675700 nodes (4096 trees): 0.324524s
+Avg time for 1676540 nodes (2048 trees): 0.329024s
+Avg time for 1678341 nodes (1024 trees): 0.367639s
+Avg time for 1678989 nodes (512 trees): 0.305515s
+Avg time for 1675841 nodes (256 trees): 0.296857s
+Avg time for 1679438 nodes (128 trees): 0.294423s
+Avg time for 1677922 nodes (64 trees): 0.274166s
+Avg time for 1677949 nodes (32 trees): 0.259680s
+Avg time for 1678941 nodes (16 trees): 0.246754s
+Avg time for 1679675 nodes (8 trees): 0.255416s
