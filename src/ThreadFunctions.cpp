@@ -120,8 +120,8 @@ void *_threadInserterTree(void *writerThread)
 
             double communicatingTimeVal = total_time.count() - tree->communicatingTime;
             double caltulatingTime = total_time.count() - communicatingTimeVal;
-            // printf("Time elapsed %fs  Time Calculated %fs Time communicated %fs  Percentage communicated %f \n", total_time.count(), caltulatingTime, communicatingTimeVal, (communicatingTimeVal / total_time.count()) * 100);
-            printf("Time communicated: %fs\n", communicatingTimeVal);
+            printf("Time elapsed %fs\n", total_time.count());
+            // printf("Time communicated: %fs\n", communicatingTimeVal);
             // printf("Percentage spent communicating %f%\n", (communicatingTimeVal / total_time.count()) * 100);
             exit(0);
         }
