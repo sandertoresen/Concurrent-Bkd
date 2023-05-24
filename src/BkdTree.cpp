@@ -12,7 +12,7 @@
 
 BkdTree::BkdTree() // default constructor
 {
-    printf("Constructur runs!\n");
+    // printf("Constructur runs!\n");
     API = new MockApi();
     globalMemory = new DataNode[GLOBAL_BUFFER_SIZE];
     globalMemorySize = 0;
