@@ -7,11 +7,16 @@
 #include "headers/MockAPI.h"
 #include "headers/MemoryStructures.h"
 #include "headers/scheduler.h"
+
 inline void __randomLocation(char *location)
 {
+    static random_device rd;
+    static mt19937 gen(rd());
+    static uniform_int_distribution<> dis('a', 'z');
+
     for (int i = 0; i < CHARACTER_LIMIT - 1; i++)
     {
-        location[i] = 'a' + rand() % 26;
+        location[i] = static_cast<char>(dis(gen));
     }
     location[CHARACTER_LIMIT - 1] = '\0';
 }
