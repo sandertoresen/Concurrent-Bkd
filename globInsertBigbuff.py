@@ -3,29 +3,28 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 
 
-# Delay results:
-# 4*4096
-# All average times:
-# program 30 average run time 37.67 seconds
-# program 16 average run time 69.78 seconds
-# program 8 average run time 136.20 seconds
-# program 4 average run time 271.48 seconds
-# program 2 average run time 541.95 seconds
-# program 1 average run time 1082.88 seconds
+# #define THREAD_BUFFER_SIZE 4096 * 4
+# #define GLOBAL_B_CHUNK_SIZE 16
+# Run 1: 58.380312 s
+# Run 2: 39.063214 s
+# Run 3: 39.306935 s
+# Run 4: 39.419243 s
+# Run 5: 39.578428 s
+# Run 6: 39.787662 s
+# Run 7: 40.014436 s
 
 average_time = [
-    37.67,
-    69.78,
-    136.20,
-    271.48,
-    541.95,
-    1082.88
-]
+    58.380312,
+    39.063214,
+    39.306935,
+    39.419243,
+    39.578428,
+    39.787662,
+    40.014436]
 
-average_time.reverse()
 
 x = [
-    1, 2, 4, 8, 16, 30
+    1, 2, 3, 4, 5, 6, 7
 ]
 # plt.rcParams['font.family'] = 'serif'
 # plt.rcParams['font.serif'] = ['Computer Modern']
@@ -43,10 +42,11 @@ font_prop = {'family': 'serif', 'size': 12,
 
 
 # x = range(0, len(average_time))
-plt.xlabel("Number of threads")
+plt.xlabel("Number of writer threads")
 plt.ylabel("Average runtime in seconds")
-plt.title("Inserting trees using global memory and disk with 1ms API delay")
+plt.title(
+    "Inserting trees using global structures of size 16 with 16384 thread buffer")
 # the 20 worst runs are bulk loadings
 plt.xticks(x)
-plt.plot(x, average_time, color='blue', marker='o', linestyle='dashed')
+plt.plot(x, average_time, color='green', marker='o', linestyle='dashed')
 plt.show()
