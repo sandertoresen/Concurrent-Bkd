@@ -49,5 +49,5 @@ plt.title(
     "Inserting trees using global structures of size 64 with 4096 thread buffer")
 # the 20 worst runs are bulk loadings
 plt.xticks(x)
-plt.plot(x, average_time, color='blue', marker='o', linestyle='dashed')
+plt.plot(x, average_time, color='blue', marker='d', linestyle='dashed')
 plt.show()
