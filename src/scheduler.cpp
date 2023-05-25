@@ -90,6 +90,7 @@ void *_schedulerMainThread(void *scheduler)
 
         if (sch->bkdTree->testEnd != chrono::time_point<chrono::high_resolution_clock>::min())
         {
+            exit(0);
             printf("Got %d trees\n", sch->bkdTree->treeId.load());
             sch->shutdown();
             break;
@@ -154,7 +155,7 @@ void Scheduler::shutdown()
 {
     for (auto it = writers.begin(); it != writers.end(); it++)
     {
-        printf("Shut down write thread\n");
+        // printf("Shut down write thread\n");
         ScheduledThread *t = *it;
         t->flag.store(0);
     }

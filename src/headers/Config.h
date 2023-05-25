@@ -14,7 +14,7 @@
 #define THREAD_BUFFER_SIZE 4096
 
 // Chunk size should be a size so that a bulkload is faster than filling the entire memory
-#define GLOBAL_B_CHUNK_SIZE 4
+#define GLOBAL_B_CHUNK_SIZE 8
 #define GLOBAL_BUFFER_SIZE (GLOBAL_B_CHUNK_SIZE * THREAD_BUFFER_SIZE)
 
 // max (GLOBAL_BUFFER_SIZE * 2) * 5 size trees
@@ -38,6 +38,6 @@
 
 #define TREES_CREATED 1000
 
-#define TREE_CREATE_TEST_VAL 32
+#define TREE_CREATE_TEST_VAL 64
 
 #endif

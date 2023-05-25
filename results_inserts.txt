@@ -1,7 +1,132 @@
-#define THREAD_BUFFER_SIZE 4096 * 4
+#define THREAD_BUFFER_SIZE 4096
+#define GLOBAL_B_CHUNK_SIZE 16
 64 trees
 
-Average times:
+1
+Time elapsed 12.606663s
+Time elapsed 12.651359s
+Time elapsed 12.724163s
+Time elapsed 12.637076s
+Time elapsed 13.143795s
+Time elapsed 13.334529s
+Time elapsed 13.631000s
+Time elapsed 13.510101s
+Time elapsed 13.397969s
+Time elapsed 13.364785s
+2
+Time elapsed 8.280910s
+Time elapsed 8.582833s
+Time elapsed 8.523890s
+Time elapsed 8.996310s
+Time elapsed 8.306169s
+Time elapsed 8.223808s
+Time elapsed 8.179916s
+Time elapsed 8.222619s
+Time elapsed 9.019580s
+Time elapsed 8.341747s
+3
+Time elapsed 7.998986s
+Time elapsed 8.008600s
+Time elapsed 8.085442s
+Time elapsed 7.971044s
+Time elapsed 8.020277s
+Time elapsed 8.045646s
+Time elapsed 8.002257s
+Time elapsed 8.038903s
+Time elapsed 7.975975s
+Time elapsed 8.043377s
+4
+Time elapsed 8.075665s
+Time elapsed 8.120243s
+Time elapsed 8.060987s
+Time elapsed 8.148887s
+Time elapsed 8.179848s
+Time elapsed 8.099557s
+Time elapsed 8.077227s
+Time elapsed 8.118588s
+Time elapsed 8.138519s
+Time elapsed 8.186742s
+5
+Time elapsed 8.160617s
+Time elapsed 8.145280s
+Time elapsed 8.138969s
+Time elapsed 8.188469s
+Time elapsed 8.229900s
+Time elapsed 8.167681s
+Time elapsed 8.308876s
+Time elapsed 8.187601s
+Time elapsed 8.142703s
+Time elapsed 8.154706s
+6
+Time elapsed 8.186952s
+Time elapsed 8.268952s
+Time elapsed 8.200509s
+Time elapsed 8.546655s
+Time elapsed 8.427197s
+Time elapsed 8.380208s
+Time elapsed 8.219344s
+Time elapsed 8.302342s
+Time elapsed 8.180025s
+Time elapsed 8.262652s
+7
+Time elapsed 8.405189s
+Time elapsed 8.378185s
+Time elapsed 8.277553s
+Time elapsed 8.314512s
+Time elapsed 8.204104s
+Time elapsed 8.343431s
+Time elapsed 8.287352s
+Time elapsed 8.270530s
+Time elapsed 8.299127s
+Time elapsed 8.353942s
+
+
+
+#define THREAD_BUFFER_SIZE 4096
+#define GLOBAL_B_CHUNK_SIZE 8
+64 trees
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+----other-----
+#define THREAD_BUFFER_SIZE 4096 * 4
+64 trees
+Average times script:
 ./program 1: 1.343175s
 ./program 2: 0.902469s
 ./program 3: 0.865262s
@@ -12,7 +137,8 @@ Average times:
 
 
 Test example that code performance is affected by running test in script
-Average times:
+64 trees
+Average times no script running test:
 ./program 1: 1.339417 s
 ./program 2: 0.834807 s
 ./program 3: 0.753006 s
@@ -23,8 +149,7 @@ Average times:
 # some overhead comes from running python script
 
 
-
-
+64 trees
 4096 * 16
 Run 1: 5.811821 s
 Run 2: 4.265906 s
@@ -35,7 +160,7 @@ Run 6: 3.415571 s
 Run 7: 3.308656 s
 
 
-
+64 trees
 4096 * 64
 Run 1: 26.628726 s
 Run 2: 20.437029 s
