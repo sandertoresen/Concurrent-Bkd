@@ -1,4 +1,86 @@
 #define THREAD_BUFFER_SIZE 4096
+#define GLOBAL_B_CHUNK_SIZE 8
+64 trees
+1
+Time elapsed 6.064126s
+Time elapsed 5.940526s
+Time elapsed 5.937141s
+Time elapsed 6.019834s
+Time elapsed 5.916507s
+Time elapsed 5.946100s
+Time elapsed 5.938782s
+Time elapsed 5.943380s
+Time elapsed 5.933076s
+Time elapsed 6.033951s
+2
+Time elapsed 3.724065s
+Time elapsed 3.742076s
+Time elapsed Time elapsed 3.707478s
+Time elapsed 3.717216s
+Time elapsed 3.727180s
+Time elapsed 3.715825s
+Time elapsed 3.718060s
+Time elapsed 3.775448s
+Time elapsed 3.720424s
+3
+Time elapsed 3.796191s
+Time elapsed 3.752086s
+Time elapsed 3.773812s
+Time elapsed 3.756009s
+Time elapsed 3.773039s
+Time elapsed 3.781663s
+Time elapsed Time elapsed 3.795778s
+Time elapsed 3.726779s
+Time elapsed 3.746635s
+Time elapsed 3.826645s
+4
+Time elapsed 3.822808s
+Time elapsed 3.780757s
+Time elapsed 4.057204s
+Time elapsed 3.792908s
+Time elapsed 3.792866s
+Time elapsed 3.860460s
+Time elapsed 3.783842s
+Time elapsed 3.818705s
+Time elapsed 3.815716s
+Time elapsed 3.846509s
+5
+Time elapsed 3.847962s
+Time elapsed 3.865879s
+Time elapsed 3.815381s
+Time elapsed 3.850006s
+Time elapsed 3.850078s
+Time elapsed 3.874122s
+Time elapsed 3.880733s
+Time elapsed 3.832255s
+Time elapsed 3.837113s
+Time elapsed 3.894247s
+6
+Time elapsed 3.922861s
+Time elapsed 3.837316s
+Time elapsed 3.863028s
+Time elapsed 3.878387s
+Time elapsed 3.962092s
+Time elapsed 3.925907s
+Time elapsed 3.877004s
+Time elapsed 3.939435s
+Time elapsed 3.883696s
+Time elapsed 3.843639s
+7
+Time elapsed 3.858944s
+Time elapsed 3.849697s
+Time elapsed 4.033589s
+Time elapsed 3.895510s
+Time elapsed 3.888176s
+Time elapsed 3.926745s
+Time elapsed 3.919806s
+Time elapsed 3.923253s
+Time elapsed 3.892910s
+Time elapsed 3.910909s
+
+
+
+#define THREAD_BUFFER_SIZE 4096
 #define GLOBAL_B_CHUNK_SIZE 16
 64 trees
 
@@ -83,157 +165,326 @@ Time elapsed 8.353942s
 
 
 #define THREAD_BUFFER_SIZE 4096
-#define GLOBAL_B_CHUNK_SIZE 8
+#define GLOBAL_B_CHUNK_SIZE 64
 64 trees
+1
+Time elapsed 56.334890s
+Time elapsed 58.633976s
+Time elapsed 58.484273s
+Time elapsed 58.550642s
+Time elapsed 58.445359s
+Time elapsed 58.522900s
+Time elapsed 58.495015s
+Time elapsed 58.431435s
+Time elapsed 58.442339s
+Time elapsed 58.374265s
+2
+Time elapsed 39.112022s
+Time elapsed 38.990252s
+Time elapsed 38.888499s
+Time elapsed 39.031509s
+Time elapsed 39.111699s
+Time elapsed 39.056156s
+Time elapsed 39.139990s
+Time elapsed 39.039940s
+Time elapsed 38.879266s
+Time elapsed 38.990972s
+3
+Time elapsed 39.090372s
+Time elapsed 39.165264s
+Time elapsed 39.148976s
+Time elapsed 39.131532s
+Time elapsed 39.162566s
+Time elapsed 39.146744s
+Time elapsed 39.123989s
+Time elapsed 39.345789s
+Time elapsed 39.536243s
+Time elapsed 39.360445s
+4
+Time elapsed 39.352129s
+Time elapsed 39.296087s
+Time elapsed 39.557452s
+Time elapsed 39.339638s
+Time elapsed 39.178738s
+Time elapsed 39.245908s
+Time elapsed 39.455757s
+Time elapsed 39.308359s
+Time elapsed 39.369620s
+Time elapsed 39.412392s
+5
+Time elapsed 39.529700s
+Time elapsed 39.510455s
+Time elapsed 39.592994s
+Time elapsed 40.154277s
+Time elapsed 39.544770s
+Time elapsed 39.610720s
+Time elapsed 39.725729s
+Time elapsed 39.631969s
+Time elapsed 39.786315s
+Time elapsed 39.391472s
+6
+Time elapsed 39.745125s
+Time elapsed 39.695572s
+Time elapsed 39.846238s
+Time elapsed 39.832366s
+Time elapsed 39.925740s
+Time elapsed 39.639831s
+Time elapsed 39.880503s
+Time elapsed 39.617214s
+Time elapsed 40.018124s
+Time elapsed 39.707810s
+7
+Time elapsed 40.049895s
+Time elapsed 39.975365s
+Time elapsed 40.010814s
+Time elapsed 39.884900s
+Time elapsed 39.982449s
+Time elapsed 40.023576s
+Time elapsed 40.152675s
+Time elapsed 40.116249s
+Time elapsed 40.030796s
+Time elapsed 39.833564s
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-----other-----
+# allerede sett at resultater gjentar seg selv, endre Config
 #define THREAD_BUFFER_SIZE 4096 * 4
-64 trees
-Average times script:
-./program 1: 1.343175s
-./program 2: 0.902469s
-./program 3: 0.865262s
-./program 4: 0.894758s
-./program 5: 0.853240s
-./program 6: 0.818819s
-./program 7: 0.806757s
+#define GLOBAL_B_CHUNK_SIZE 16
+1
+Time elapsed 56.176019s
+Time elapsed 58.652614s
+Time elapsed 58.437168s
+Time elapsed 58.316881s
+Time elapsed 58.454469s
+Time elapsed 58.375351s
+Time elapsed 58.316989s
+Time elapsed 58.311855s
+Time elapsed 58.385894s
+Time elapsed 58.286682s
+2
+Time elapsed 39.034649s
+Time elapsed 39.032522s
+Time elapsed 38.987127s
+Time elapsed 39.015277s
+Time elapsed 39.077661s
+Time elapsed 38.967802s
+Time elapsed 39.067157s
+Time elapsed 38.962706s
+Time elapsed 39.014610s
+Time elapsed 39.362950s
+3
+Time elapsed 39.230065s
+Time elapsed 39.237095s
+Time elapsed 39.522726s
+Time elapsed 39.364479s
+Time elapsed 39.171129s
+Time elapsed 39.346949s
+Time elapsed 39.270087s
+Time elapsed 39.241059s
+Time elapsed 39.310704s
+Time elapsed 39.192062s
+4
+Time elapsed 39.347020s
+Time elapsed 39.301737s
+Time elapsed 39.297394s
+Time elapsed 39.307570s
+Time elapsed 39.573036s
+Time elapsed 39.663032s
+Time elapsed 39.460793s
+Time elapsed 39.581517s
+Time elapsed 39.845162s
+Time elapsed 39.305253s
+5
+Time elapsed 39.566233s
+Time elapsed 39.649648s
+Time elapsed 39.655475s
+Time elapsed 39.499634s
+Time elapsed 39.619026s
+Time elapsed 39.555929s
+Time elapsed 39.692928s
+Time elapsed 39.635967s
+Time elapsed 39.708988s
+Time elapsed 39.389722s
+6
+Time elapsed 39.906445s
+Time elapsed 40.081776s
+Time elapsed 40.013497s
+Time elapsed 39.623670s
+Time elapsed 39.784834s
+Time elapsed 39.709882s
+Time elapsed 39.510814s
+Time elapsed 39.707654s
+Time elapsed 39.894528s
+Time elapsed 39.899763s
+7
+Time elapsed 40.291198s
+Time elapsed 40.044134s
+Time elapsed 40.158991s
+Time elapsed 40.141484s
+Time elapsed 39.992079s
+Time elapsed 39.980602s
+Time elapsed 39.878437s
+Time elapsed 39.901042s
+Time elapsed 39.782638s
+Time elapsed 39.919719s
 
 
-Test example that code performance is affected by running test in script
-64 trees
-Average times no script running test:
-./program 1: 1.339417 s
-./program 2: 0.834807 s
-./program 3: 0.753006 s
-./program 4: 0.699765 s
-./program 5: 0.653197 s
-./program 6: 0.628216 s
-./program 7: 0.627375 s
-# some overhead comes from running python script
+#define THREAD_BUFFER_SIZE 4096 * 4
+#define GLOBAL_B_CHUNK_SIZE 8
+1
+Time elapsed 26.436843s
+Time elapsed 26.517813s
+Time elapsed 27.401213s
+Time elapsed 27.372303s
+Time elapsed 27.367137s
+Time elapsed 27.396984s
+Time elapsed 27.416260s
+Time elapsed 27.321685s
+Time elapsed 27.305212s
+Time elapsed 27.340255s
+2
+Time elapsed 17.427005s
+Time elapsed 17.499962s
+Time elapsed 17.453640s
+Time elapsed 17.559098s
+Time elapsed 17.493355s
+Time elapsed 17.411586s
+Time elapsed 17.526558s
+Time elapsed 17.477043s
+Time elapsed 17.471139s
+Time elapsed 17.527169s
+3
+Time elapsed 17.617021s
+Time elapsed 17.612089s
+Time elapsed 17.577946s
+Time elapsed 17.590405s
+Time elapsed 17.571530s
+Time elapsed 17.530339s
+Time elapsed 17.551324s
+Time elapsed 17.611674s
+Time elapsed 17.562209s
+Time elapsed 17.647046s
+4
+Time elapsed 17.740807s
+Time elapsed 18.101682s
+Time elapsed 17.710339s
+Time elapsed 17.737953s
+Time elapsed 17.785845s
+Time elapsed 17.681104s
+Time elapsed 17.823279s
+Time elapsed 17.846467s
+Time elapsed 17.699624s
+Time elapsed 17.725901s
+5
+Time elapsed 17.874517s
+Time elapsed 17.751487s
+Time elapsed 17.926226s
+Time elapsed 17.821382s
+Time elapsed 17.864682s
+Time elapsed 17.951519s
+Time elapsed 17.854449s
+Time elapsed 17.793574s
+Time elapsed 17.777534s
+Time elapsed 17.905039s
+6
+Time elapsed 17.906192s
+Time elapsed 17.916237s
+Time elapsed 17.925115s
+Time elapsed 18.124297s
+Time elapsed 18.092514s
+Time elapsed 17.891447s
+Time elapsed 17.887793s
+Time elapsed 17.884443s
+Time elapsed 18.074163s
+Time elapsed 17.950326s
+7
+Time elapsed 18.161045s
+Time elapsed 18.109085s
+Time elapsed 18.081753s
+Time elapsed 18.097498s
+Time elapsed 18.017893s
+Time elapsed 17.979814s
+Time elapsed 18.074829s
+Time elapsed 18.092086s
+Time elapsed 18.146249s
+Time elapsed 18.089739s
 
+#define THREAD_BUFFER_SIZE 4096 * 4
+#define GLOBAL_B_CHUNK_SIZE 4
+1
+Time elapsed 12.449954s
+Time elapsed 12.577033s
+Time elapsed 12.523022s
+Time elapsed 12.493923s
+Time elapsed 12.774685s
+Time elapsed 13.054734s
+Time elapsed 13.091130s
+Time elapsed 13.067696s
+Time elapsed 13.165553s
+Time elapsed 13.063298s
+2
+Time elapsed 8.006419s
+Time elapsed 8.046087s
+Time elapsed 8.006957s
+Time elapsed 8.048282s
+Time elapsed 8.085637s
+Time elapsed 8.031317s
+Time elapsed 7.996678s
+Time elapsed 7.997997s
+Time elapsed 8.047664s
+Time elapsed 8.044137s
+3
+Time elapsed 8.068572s
+Time elapsed 8.092478s
+Time elapsed 8.110905s
+Time elapsed 8.136071s
+Time elapsed 8.273344s
+Time elapsed 8.060463s
+Time elapsed 8.137885s
+Time elapsed 8.141499s
+Time elapsed 8.105772s
+Time elapsed 8.083262s
+4
+Time elapsed 8.205220s
+Time elapsed 8.188864s
+Time elapsed 8.129203s
+Time elapsed 8.194887s
+Time elapsed 8.108254s
+Time elapsed 8.156667s
+Time elapsed 8.205218s
+Time elapsed 8.145925s
+Time elapsed 8.135201s
+Time elapsed 8.142302s
+5
+Time elapsed 8.223545s
+Time elapsed 8.230649s
+Time elapsed 8.269881s
+Time elapsed 8.194329s
+Time elapsed 8.217482s
+Time elapsed 8.214984s
+Time elapsed 8.208491s
+Time elapsed 8.221044s
+Time elapsed 8.215624s
+Time elapsed 8.187559s
+6
+Time elapsed 8.280790s
+Time elapsed 8.425017s
+Time elapsed 8.264998s
+Time elapsed 8.284111s
+Time elapsed 8.333649s
+Time elapsed 8.429206s
+Time elapsed 8.327254s
+Time elapsed 8.263220s
+Time elapsed 8.349369s
+Time elapsed 8.279143s
+7
+Time elapsed 8.287853s
+Time elapsed 8.429577s
+Time elapsed 8.365441s
+Time elapsed 8.330180s
+Time elapsed 8.348599s
+Time elapsed 8.260436s
+Time elapsed 8.347706s
+Time elapsed 8.474690s
+Time elapsed 8.318859s
+Time elapsed 8.434771s
 
-64 trees
-4096 * 16
-Run 1: 5.811821 s
-Run 2: 4.265906 s
-Run 3: 3.875301 s
-Run 4: 3.642500 s
-Run 5: 3.530235 s
-Run 6: 3.415571 s
-Run 7: 3.308656 s
-
-
-64 trees
-4096 * 64
-Run 1: 26.628726 s
-Run 2: 20.437029 s
-Run 3: 16.530267 s
-Run 4: 15.281646 s
-Run 5: 14.876902 s
-Run 6: 14.269012 s
-Run 7: 13.903820 s
-
-----------------------------
-128 trees
-
-4096 * 4
-Run 1: 2.713562 s
-Run 2: 1.864234 s
-Run 3: 1.843674 s
-Run 4: 1.753044 s
-Run 5: 1.665990 s
-Run 6: 1.586219 s
-Run 7: 1.562252 s
-
-
-4096 * 16
-Run 1: 11.680836 s
-Run 2: 7.876719 s
-Run 3: 7.545828 s
-Run 4: 7.240083 s
-Run 5: 6.714057 s
-Run 6: 6.475886 s
-Run 7: 6.341246 s
-
-4096 * 64
-Run 1: 53.127481 s
-Run 2: 37.293918 s
-Run 3: 32.927723 s
-Run 4: 29.668766 s
-Run 5: 28.071584 s
-Run 6: 27.402124 s
-Run 7: 26.708567 s
-
-
-
-
------------------------- Server -------------------------
-1,2,4,8,16,32,64,128
-128 trees
-
-4096 * 4
-Run 1: 3.350993 s
-Run 2: 2.195981 s
-Run 4: 3.163219 s
-Run 8: 3.375539 s
-Run 16: 3.552864 s
-Run 32: 2.994555 s
-Run 64: 3.687127 s
-Run 128: 5.358019 s
-
-4096 * 16
-Run 1: 14.478703 s
-Run 2: 9.378093 s
-Run 4: 11.925392 s
-Run 8: 13.487836 s
-Run 16: 13.821947 s
-Run 32: 11.534818 s
-Run 64: 14.650274 s
-Run 128: 19.578361 s
-
-4096 * 64
-Run 1: 64.137432 s
-Run 2: 39.322142 s
-Run 4: 45.866090 s
-Run 8: 54.039236 s
-Run 16: 56.732973 s
-Run 32: 47.442801 s
-Run 64: 59.377097 s
-Run 128: 92.255755 s
