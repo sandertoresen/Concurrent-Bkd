@@ -1,0 +1,114 @@
+#define THREAD_BUFFER_SIZE 4096 * 4
+64 trees
+
+Average times:
+./program 1: 1.343175s
+./program 2: 0.902469s
+./program 3: 0.865262s
+./program 4: 0.894758s
+./program 5: 0.853240s
+./program 6: 0.818819s
+./program 7: 0.806757s
+
+
+Test example that code performance is affected by running test in script
+Average times:
+./program 1: 1.339417 s
+./program 2: 0.834807 s
+./program 3: 0.753006 s
+./program 4: 0.699765 s
+./program 5: 0.653197 s
+./program 6: 0.628216 s
+./program 7: 0.627375 s
+# some overhead comes from running python script
+
+
+
+
+4096 * 16
+Run 1: 5.811821 s
+Run 2: 4.265906 s
+Run 3: 3.875301 s
+Run 4: 3.642500 s
+Run 5: 3.530235 s
+Run 6: 3.415571 s
+Run 7: 3.308656 s
+
+
+
+4096 * 64
+Run 1: 26.628726 s
+Run 2: 20.437029 s
+Run 3: 16.530267 s
+Run 4: 15.281646 s
+Run 5: 14.876902 s
+Run 6: 14.269012 s
+Run 7: 13.903820 s
+
+----------------------------
+128 trees
+
+4096 * 4
+Run 1: 2.713562 s
+Run 2: 1.864234 s
+Run 3: 1.843674 s
+Run 4: 1.753044 s
+Run 5: 1.665990 s
+Run 6: 1.586219 s
+Run 7: 1.562252 s
+
+
+4096 * 16
+Run 1: 11.680836 s
+Run 2: 7.876719 s
+Run 3: 7.545828 s
+Run 4: 7.240083 s
+Run 5: 6.714057 s
+Run 6: 6.475886 s
+Run 7: 6.341246 s
+
+4096 * 64
+Run 1: 53.127481 s
+Run 2: 37.293918 s
+Run 3: 32.927723 s
+Run 4: 29.668766 s
+Run 5: 28.071584 s
+Run 6: 27.402124 s
+Run 7: 26.708567 s
+
+
+
+
+------------------------ Server -------------------------
+1,2,4,8,16,32,64,128
+128 trees
+
+4096 * 4
+Run 1: 3.350993 s
+Run 2: 2.195981 s
+Run 4: 3.163219 s
+Run 8: 3.375539 s
+Run 16: 3.552864 s
+Run 32: 2.994555 s
+Run 64: 3.687127 s
+Run 128: 5.358019 s
+
+4096 * 16
+Run 1: 14.478703 s
+Run 2: 9.378093 s
+Run 4: 11.925392 s
+Run 8: 13.487836 s
+Run 16: 13.821947 s
+Run 32: 11.534818 s
+Run 64: 14.650274 s
+Run 128: 19.578361 s
+
+4096 * 64
+Run 1: 64.137432 s
+Run 2: 39.322142 s
+Run 4: 45.866090 s
+Run 8: 54.039236 s
+Run 16: 56.732973 s
+Run 32: 47.442801 s
+Run 64: 59.377097 s
+Run 128: 92.255755 s
