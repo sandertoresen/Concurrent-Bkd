@@ -11,8 +11,8 @@
 inline void __randomLocation(char *location)
 {
     static random_device rd;
-    static mt19937 gen(rd());
-    static uniform_int_distribution<> dis('a', 'z');
+    static thread_local mt19937 gen(rd());
+    static thread_local uniform_int_distribution<> dis('a', 'z');
 
     for (int i = 0; i < CHARACTER_LIMIT - 1; i++)
     {
@@ -24,14 +24,14 @@ inline void __randomLocation(char *location)
 inline float __randomUniformDistribution(float x, float y)
 {
     static thread_local mt19937 generator(random_device{}());
-    uniform_real_distribution<float> distribution(x, y);
+    thread_local uniform_real_distribution<float> distribution(x, y);
     return distribution(generator);
 }
 
 inline float __randomNormalDistribution(float mean, float stddev)
 {
     static thread_local mt19937 generator(random_device{}());
-    normal_distribution<float> distribution(mean, stddev);
+    thread_local normal_distribution<float> distribution(mean, stddev);
     return distribution(generator);
 }
 
