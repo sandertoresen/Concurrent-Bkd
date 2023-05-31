@@ -11,7 +11,7 @@
 // should perform a test testing the effect of different thread buffer sizes.
 #define KDB_LEAF_SIZE 128
 
-#define THREAD_BUFFER_SIZE 4096 * 4
+#define THREAD_BUFFER_SIZE 4096
 
 // Chunk size should be a size so that a bulkload is faster than filling the entire memory
 #define GLOBAL_B_CHUNK_SIZE 8

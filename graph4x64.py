@@ -3,25 +3,23 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 
 
-# define THREAD_BUFFER_SIZE 4096 * 4
-# 64 trees
-# Average times script:
-# ./program 1: 1.343175s
-# ./program 2: 0.902469s
-# ./program 3: 0.865262s
-# ./program 4: 0.894758s
-# ./program 5: 0.853240s
-# ./program 6: 0.818819s
-# ./program 7: 0.806757s
+# ----program4x64------
+# Inserter threads 1: 1.3682592999999998s
+# Inserter threads 2: 0.7939739s
+# Inserter threads 3: 0.5946260999999999s
+# Inserter threads 4: 0.5302686999999999s
+# Inserter threads 5: 0.4961925s
+# Inserter threads 6: 0.46090090000000006s
+# Inserter threads 7: 0.4541334s
 
 average_time = [
-    1.343175*100,
-    0.902469*100,
-    0.865262*100,
-    0.894758*100,
-    0.853240*100,
-    0.818819*100,
-    0.806757*100]
+    1.3682592999999998*100,
+    0.7939739*100,
+    0.5946260999999999*100,
+    0.5302686999999999*100,
+    0.4961925*100,
+    0.46090090000000006*100,
+    0.4541334*100]
 
 
 x = [

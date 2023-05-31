@@ -1,0 +1,48 @@
+----program16x64------
+Inserter threads 1: 5.7161508s
+Inserter threads 2: 3.4784284s
+Inserter threads 3: 2.6117966s
+Inserter threads 4: 2.3167621s
+Inserter threads 5: 2.1509533999999997s
+Inserter threads 6: 2.0501910000000003s
+Inserter threads 7: 1.9232781000000003s
+----program4x64------
+Inserter threads 1: 1.3682592999999998s
+Inserter threads 2: 0.7939739s
+Inserter threads 3: 0.5946260999999999s
+Inserter threads 4: 0.5302686999999999s
+Inserter threads 5: 0.4961925s
+Inserter threads 6: 0.46090090000000006s
+Inserter threads 7: 0.4541334s
+----program64x64------
+Inserter threads 1: 26.315219199999994s
+Inserter threads 2: 15.1275993s
+Inserter threads 3: 11.5288674s
+Inserter threads 4: 10.252782700000001s
+Inserter threads 5: 9.4448834s
+Inserter threads 6: 8.839327s
+Inserter threads 7: 8.5308577s
+----program16x128------
+Inserter threads 1: 5.9408216s
+Inserter threads 2: 3.4642013s
+Inserter threads 3: 2.6045589s
+Inserter threads 4: 2.3234889s
+Inserter threads 5: 2.1604322s
+Inserter threads 6: 2.0133955s
+Inserter threads 7: 1.9324818000000001s
+----program4x128------
+Inserter threads 1: 2.7337909s
+Inserter threads 2: 1.56817s
+Inserter threads 3: 1.1782165999999998s
+Inserter threads 4: 1.0331644999999998s
+Inserter threads 5: 0.9528235s
+Inserter threads 6: 0.8923019999999999s
+Inserter threads 7: 0.8595501000000001s
+----program64x128------
+Inserter threads 1: 52.5305933s
+Inserter threads 2: 30.377571900000003s
+Inserter threads 3: 22.701738699999996s
+Inserter threads 4: 20.0688086s
+Inserter threads 5: 18.414225899999998s
+Inserter threads 6: 17.1812455s
+Inserter threads 7: 16.2787795s

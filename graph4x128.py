@@ -2,24 +2,23 @@
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 
-# 128 trees
-# 4096 * 4
-# Run 1: 2.713562 s
-# Run 2: 1.864234 s
-# Run 3: 1.843674 s
-# Run 4: 1.753044 s
-# Run 5: 1.665990 s
-# Run 6: 1.586219 s
-# Run 7: 1.562252 s
+# ----program4x128------
+# Inserter threads 1: 2.7337909s
+# Inserter threads 2: 1.56817s
+# Inserter threads 3: 1.1782165999999998s
+# Inserter threads 4: 1.0331644999999998s
+# Inserter threads 5: 0.9528235s
+# Inserter threads 6: 0.8923019999999999s
+# Inserter threads 7: 0.8595501000000001s
 
 average_time = [
-    26.628726*100,
-    20.437029*100,
-    16.530267*100,
-    15.281646*100,
-    14.876902*100,
-    14.269012*100,
-    13.903820*100]
+    2.7337909*100,
+    1.56817*100,
+    1.1782165999999998*100,
+    1.0331644999999998*100,
+    0.9528235*100,
+    0.8923019999999999*100,
+    0.8595501000000001*100]
 
 
 x = [
