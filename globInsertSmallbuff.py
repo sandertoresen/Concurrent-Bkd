@@ -4,24 +4,23 @@ from matplotlib import rcParams
 
 
 # define THREAD_BUFFER_SIZE 4096
-# test small Buffer size
-# 64 trees
-# Run 1: 58.475401 s
-# Run 2: 39.037989 s
-# Run 3: 39.248220 s
-# Run 4: 39.364338 s
-# Run 5: 39.608335 s
-# Run 6: 39.804307 s
-# Run 7: 39.992638 s
+# 64 tree glob buf 64 thread size 4096
+# programSmall: 1 - 56.9513036
+# programSmall: 2 - 38.33518250000001
+# programSmall: 3 - 38.4632033
+# programSmall: 4 - 38.4854577
+# programSmall: 5 - 38.584429199999995
+# programSmall: 6 - 38.738613199999996
+# programSmall: 7 - 38.8464384
 
 average_time = [
-    58.475401,
-    39.037989,
-    39.248220,
-    39.364338,
-    39.608335,
-    39.804307,
-    39.992638]
+    56.9513036,
+    38.33518250000001,
+    38.4632033,
+    38.4854577,
+    38.584429199999995,
+    38.738613199999996,
+    38.8464384]
 
 
 x = [

@@ -5,22 +5,23 @@ from matplotlib import rcParams
 
 # #define THREAD_BUFFER_SIZE 4096 * 4
 # #define GLOBAL_B_CHUNK_SIZE 16
-# Run 1: 58.380312 s
-# Run 2: 39.063214 s
-# Run 3: 39.306935 s
-# Run 4: 39.419243 s
-# Run 5: 39.578428 s
-# Run 6: 39.787662 s
-# Run 7: 40.014436 s
+# 64 tree glob buf 16 thread size 16384
+# programBig: 1 - 57.368606899999996
+# programBig: 2 - 38.497728
+# programBig: 3 - 38.495173199999996
+# programBig: 4 - 38.632534799999995
+# programBig: 5 - 38.6962396
+# programBig: 6 - 38.7062452
+# programBig: 7 - 38.811803100000006
 
 average_time = [
-    58.380312,
-    39.063214,
-    39.306935,
-    39.419243,
-    39.578428,
-    39.787662,
-    40.014436]
+    57.368606899999996,
+    38.497728,
+    38.495173199999996,
+    38.632534799999995,
+    38.6962396,
+    38.7062452,
+    38.811803100000006]
 
 
 x = [
