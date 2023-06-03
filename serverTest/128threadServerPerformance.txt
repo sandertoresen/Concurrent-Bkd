@@ -1,0 +1,105 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls  Ts/call  Ts/call  name    
+ 17.06      5.24     5.24                             dataNodeCMP::operator()(DataNode&, DataNode&)
+ 10.57      8.48     3.25                             DataNode* std::__unguarded_partition<DataNode*, __gnu_cxx::__ops::_Iter_comp_iter<dataNodeCMP> >(DataNode*, DataNode*, DataNode*, __gnu_cxx::__ops::_Iter_comp_iter<dataNodeCMP>)
+  9.94     11.53     3.05                             std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::operator()()
+  9.71     14.51     2.98                             KdbCreateBranch(DataNode*, int, KdbTree*, KdbBranch*, int)
+  6.74     16.58     2.07                             std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::_M_gen_rand()
+  6.30     18.52     1.94                             int std::uniform_int_distribution<int>::operator()<std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul> >(std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&, std::uniform_int_distribution<int>::param_type const&)
+  4.77     19.98     1.47                             unsigned int std::uniform_int_distribution<int>::_S_nd<unsigned long, std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>, unsigned int>(std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&, unsigned int)
+  4.09     21.23     1.25                             std::enable_if<std::__and_<std::__not_<std::__is_tuple_like<DataNode> >, std::is_move_constructible<DataNode>, std::is_move_assignable<DataNode> >::value, void>::type std::swap<DataNode>(DataNode&, DataNode&)
+  4.04     22.48     1.24                             bool __gnu_cxx::__ops::_Iter_comp_iter<dataNodeCMP>::operator()<DataNode*, DataNode*>(DataNode*, DataNode*)
+  3.06     23.41     0.94                             void std::__unguarded_linear_insert<DataNode*, __gnu_cxx::__ops::_Val_comp_iter<dataNodeCMP> >(DataNode*, __gnu_cxx::__ops::_Val_comp_iter<dataNodeCMP>)
+  2.97     24.32     0.91                             std::remove_reference<DataNode&>::type&& std::move<DataNode&>(DataNode&)
+  1.89     24.91     0.58                             std::uniform_int_distribution<int>::param_type::b() const
+  1.82     25.46     0.56                             __randomLocation(char*)
+  1.69     25.98     0.52                             std::uniform_int_distribution<int>::param_type::a() const
+  1.37     26.41     0.42                             float std::generate_canonical<float, 24ul, std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul> >(std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&)
+  1.25     26.79     0.39                             void std::iter_swap<DataNode*, DataNode*>(DataNode*, DataNode*)
+  1.21     27.16     0.37                             bool __gnu_cxx::__ops::_Val_comp_iter<dataNodeCMP>::operator()<DataNode, DataNode*>(DataNode&, DataNode*)
+  0.94     27.45     0.29                             MockApi::fetchRandom(DataNode*)
+  0.81     27.70     0.25                             KdbCreateTree(DataNode*, int, long, int)
+  0.75     27.93     0.23                             int std::uniform_int_distribution<int>::operator()<std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul> >(std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&)
+  0.68     28.14     0.21                             generateUniqueId(std::atomic<long>&)
+  0.65     28.34     0.20                             DataNode* std::move_backward<DataNode*, DataNode*>(DataNode*, DataNode*, DataNode*)
+  0.64     28.54     0.20                             __gnu_cxx::__ops::_Val_comp_iter<dataNodeCMP>::_Val_comp_iter(__gnu_cxx::__ops::_Iter_comp_iter<dataNodeCMP>&&)
+  0.46     28.68     0.14                             std::__atomic_base<int>::operator int() const
+  0.46     28.82     0.14                             void std::__unguarded_insertion_sort<DataNode*, __gnu_cxx::__ops::_Iter_comp_iter<dataNodeCMP> >(DataNode*, DataNode*, __gnu_cxx::__ops::_Iter_comp_iter<dataNodeCMP>)
+  0.44     28.95     0.14                             dataNodeCMP::dataNodeCMP(int)
+  0.36     29.06     0.11                             float std::uniform_real_distribution<float>::operator()<std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul> >(std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&, std::uniform_real_distribution<float>::param_type const&)
+  0.33     29.16     0.10                             _threadInserterTree(void*)
+  0.33     29.26     0.10                             __gnu_cxx::__ops::_Val_comp_iter<dataNodeCMP> __gnu_cxx::__ops::__val_comp_iter<dataNodeCMP>(__gnu_cxx::__ops::_Iter_comp_iter<dataNodeCMP>)
+  0.29     29.35     0.09                             std::__detail::_Adaptor<std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>, float>::operator()()
+  0.28     29.43     0.09                             DataNode* std::__unguarded_partition_pivot<DataNode*, __gnu_cxx::__ops::_Iter_comp_iter<dataNodeCMP> >(DataNode*, DataNode*, __gnu_cxx::__ops::_Iter_comp_iter<dataNodeCMP>)
+  0.26     29.52     0.08                             void std::__introsort_loop<DataNode*, long, __gnu_cxx::__ops::_Iter_comp_iter<dataNodeCMP> >(DataNode*, DataNode*, long, __gnu_cxx::__ops::_Iter_comp_iter<dataNodeCMP>)
+  0.24     29.59     0.07                             __randomUniformDistribution(float, float)
+  0.24     29.66     0.07                             std::__detail::_Adaptor<std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>, float>::_Adaptor(std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&)
+  0.24     29.74     0.07                             void std::__move_median_to_first<DataNode*, __gnu_cxx::__ops::_Iter_comp_iter<dataNodeCMP> >(DataNode*, DataNode*, DataNode*, DataNode*, __gnu_cxx::__ops::_Iter_comp_iter<dataNodeCMP>)
+  0.23     29.81     0.07                             std::common_type<std::chrono::duration<long, std::ratio<1l, 1000000000l> >, std::chrono::duration<long, std::ratio<1l, 1000000000l> > >::type std::chrono::operator-<long, std::ratio<1l, 1000000000l>, long, std::ratio<1l, 1000000000l> >(std::chrono::duration<long, std::ratio<1l, 1000000000l> > const&, std::chrono::duration<long, std::ratio<1l, 1000000000l> > const&)
+  0.23     29.88     0.07                             std::remove_reference<__gnu_cxx::__ops::_Iter_comp_iter<dataNodeCMP>&>::type&& std::move<__gnu_cxx::__ops::_Iter_comp_iter<dataNodeCMP>&>(__gnu_cxx::__ops::_Iter_comp_iter<dataNodeCMP>&)
+  0.21     29.95     0.07                             std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::min()
+  0.20     30.00     0.06                             std::chrono::duration<long, std::ratio<1l, 1000l> > std::chrono::__duration_cast_impl<std::chrono::duration<long, std::ratio<1l, 1000l> >, std::ratio<1l, 1000000l>, long, true, false>::__cast<long, std::ratio<1l, 1000000000l> >(std::chrono::duration<long, std::ratio<1l, 1000000000l> > const&)
+  0.16     30.05     0.05                             std::uniform_real_distribution<float>::param_type::a() const
+  0.16     30.11     0.05                             std::chrono::time_point<std::chrono::_V2::steady_clock, std::chrono::duration<long, std::ratio<1l, 1000000000l> > >::time_since_epoch() const
+  0.16     30.16     0.05                             _init
+  0.15     30.20     0.04                             std::remove_reference<dataNodeCMP&>::type&& std::move<dataNodeCMP&>(dataNodeCMP&)
+  0.13     30.24     0.04                             std::chrono::duration<long, std::ratio<1l, 1000000000l> >::count() const
+  0.11     30.27     0.04                             std::__is_constant_evaluated()
+  0.10     30.30     0.03                             std::uniform_real_distribution<float>::param_type::b() const
+  0.10     30.34     0.03                             std::chrono::duration<long, std::ratio<1l, 1000l> >::count() const
+  0.10     30.36     0.03                             std::uniform_real_distribution<float>::param_type::param_type(float, float)
+  0.10     30.39     0.03                             std::chrono::duration<long, std::ratio<1l, 1000000000l> >::duration<long, void>(long const&)
+  0.10     30.43     0.03                             std::chrono::duration<long, std::ratio<1l, 1000l> >::duration<long, void>(long const&)
+  0.10     30.45     0.03                             std::common_type<std::chrono::duration<long, std::ratio<1l, 1000000000l> >, std::chrono::duration<long, std::ratio<1l, 1000000000l> > >::type std::chrono::operator-<std::chrono::_V2::steady_clock, std::chrono::duration<long, std::ratio<1l, 1000000000l> >, std::chrono::duration<long, std::ratio<1l, 1000000000l> > >(std::chrono::time_point<std::chrono::_V2::steady_clock, std::chrono::duration<long, std::ratio<1l, 1000000000l> > > const&, std::chrono::time_point<std::chrono::_V2::steady_clock, std::chrono::duration<long, std::ratio<1l, 1000000000l> > > const&)
+  0.08     30.48     0.03                             __gnu_cxx::__ops::_Iter_comp_iter<dataNodeCMP>::_Iter_comp_iter(dataNodeCMP)
+  0.08     30.50     0.03                             DataNode* std::__miter_base<DataNode*>(DataNode*)
+  0.08     30.53     0.03                             DataNode* std::__niter_base<DataNode*>(DataNode*)
+  0.08     30.55     0.03                             std::operator&(std::memory_order, std::__memory_order_modifier)
+  0.07     30.57     0.02                             _schedulerMainThread(void*)
+  0.07     30.59     0.02                             std::allocator_traits<std::allocator<std::_List_node<KdbTree*> > >::allocate(std::allocator<std::_List_node<KdbTree*> >&, unsigned long)
+  0.07     30.61     0.02                             std::uniform_real_distribution<float>::uniform_real_distribution(float, float)
+  0.07     30.64     0.02                             float std::uniform_real_distribution<float>::operator()<std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul> >(std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&)
+  0.07     30.66     0.02                             std::enable_if<std::chrono::__is_duration<std::chrono::duration<long, std::ratio<1l, 1000l> > >::value, std::chrono::duration<long, std::ratio<1l, 1000l> > >::type std::chrono::duration_cast<std::chrono::duration<long, std::ratio<1l, 1000l> >, long, std::ratio<1l, 1000000000l> >(std::chrono::duration<long, std::ratio<1l, 1000000000l> > const&)
+  0.02     30.66     0.01                             MockApi::fetchWindowQuery()
+  0.02     30.66     0.01                             MockApi::MockApi()
+  0.02     30.67     0.01                             std::__cxx11::_List_base<DataNode, std::allocator<DataNode> >::_List_base()
+  0.02     30.68     0.01                             void std::__insertion_sort<DataNode*, __gnu_cxx::__ops::_Iter_comp_iter<dataNodeCMP> >(DataNode*, DataNode*, __gnu_cxx::__ops::_Iter_comp_iter<dataNodeCMP>)
+  0.02     30.68     0.01                             DataNode* std::__copy_move_backward_a<true, DataNode*, DataNode*>(DataNode*, DataNode*, DataNode*)
+  0.02     30.68     0.01                             std::__cmpexch_failure_order2(std::memory_order)
+  0.02     30.69     0.01                             operator new(unsigned long, void*)
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.
+
+Copyright (C) 2012-2021 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
